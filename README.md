@@ -32,7 +32,9 @@ Sem anúncios, sem compras dentro do jogo, sem conexão com servidor nenhum — 
 
 ## Capturas de tela
 
-> _Em breve — rode o projeto localmente pra ver em ação._
+<div align="center">
+<img src="docs/screenshot-menu.png" alt="Tela inicial do Núcleo" width="700" />
+</div>
 
 ## Como jogar
 
