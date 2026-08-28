@@ -1,0 +1,30 @@
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #05080c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial, sans-serif;
+}
+
+#app {
+  width: 960px;
+  height: 640px;
+  max-width: 100vw;
+  max-height: 100vh;
+  flex-shrink: 0;
+}
+
+canvas {
+  display: block;
+}

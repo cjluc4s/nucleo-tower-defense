@@ -1,0 +1,73 @@
+import Phaser from 'phaser';
+import type { EnemyDef } from './constants';
+
+export default class Enemy {
+  scene: Phaser.Scene;
+  def: EnemyDef;
+  hp: number;
+  maxHp: number;
+  x: number;
+  y: number;
+  waypointIndex = 1;
+  alive = true;
+  leaked = false;
+  container: Phaser.GameObjects.Container;
+  private readonly pathPoints: { x: number; y: number }[];
+  private hpBarFill: Phaser.GameObjects.Rectangle;
+
+  constructor(scene: Phaser.Scene, def: EnemyDef, pathPoints: { x: number; y: number }[]) {
+    this.scene = scene;
+    this.def = def;
+    this.pathPoints = pathPoints;
+    this.hp = def.hp;
+    this.maxHp = def.hp;
+    const start = pathPoints[0];
+    this.x = start.x;
+    this.y = start.y;
+
+    this.container = scene.add.container(this.x, this.y);
+    const body = scene.add.circle(0, 0, def.radius, def.color).setStrokeStyle(2, 0x000000, 0.35);
+    const hpBarBg = scene.add.rectangle(0, -def.radius - 10, def.radius * 2, 5, 0x000000, 0.5);
+    this.hpBarFill = scene.add.rectangle(0, -def.radius - 10, def.radius * 2, 5, 0x2ecc71);
+    this.container.add([body, hpBarBg, this.hpBarFill]);
+  }
+
+  update(dt: number) {
+    if (!this.alive) return;
+    const target = this.pathPoints[this.waypointIndex];
+    if (!target) {
+      this.leaked = true;
+      this.alive = false;
+      return;
+    }
+    const dx = target.x - this.x;
+    const dy = target.y - this.y;
+    const dist = Math.hypot(dx, dy);
+    const step = (this.def.speed * dt) / 1000;
+    if (dist <= step) {
+      this.x = target.x;
+      this.y = target.y;
+      this.waypointIndex++;
+    } else {
+      this.x += (dx / dist) * step;
+      this.y += (dy / dist) * step;
+    }
+    this.container.setPosition(this.x, this.y);
+  }
+
+  takeDamage(amount: number): boolean {
+    this.hp -= amount;
+    const pct = Math.max(this.hp, 0) / this.maxHp;
+    this.hpBarFill.width = this.def.radius * 2 * pct;
+    this.hpBarFill.setFillStyle(pct > 0.5 ? 0x2ecc71 : pct > 0.25 ? 0xf1c40f : 0xe74c3c);
+    if (this.hp <= 0 && this.alive) {
+      this.alive = false;
+      return true; // killed
+    }
+    return false;
+  }
+
+  destroy() {
+    this.container.destroy();
+  }
+}
