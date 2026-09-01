@@ -24,7 +24,7 @@ export const DIFFICULTY_DEFS: Record<DifficultyKey, DifficultyDef> = {
     name: 'Fácil',
     startingGold: 220,
     startingLives: 30,
-    rewardMultiplier: 1.3,
+    rewardMultiplier: 0.85,
     color: 0x2ecc71,
   },
   medium: {
@@ -32,7 +32,7 @@ export const DIFFICULTY_DEFS: Record<DifficultyKey, DifficultyDef> = {
     name: 'Médio',
     startingGold: 150,
     startingLives: 20,
-    rewardMultiplier: 1.0,
+    rewardMultiplier: 0.65,
     color: 0xf1c40f,
   },
   hard: {
@@ -40,7 +40,7 @@ export const DIFFICULTY_DEFS: Record<DifficultyKey, DifficultyDef> = {
     name: 'Difícil',
     startingGold: 100,
     startingLives: 12,
-    rewardMultiplier: 0.75,
+    rewardMultiplier: 0.5,
     color: 0xe74c3c,
   },
 };
