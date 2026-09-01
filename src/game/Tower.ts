@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { TowerDef } from './constants';
+import type { TowerDef, TargetPriority } from './constants';
 import type Enemy from './Enemy';
 
 export default class Tower {
@@ -10,6 +10,7 @@ export default class Tower {
   col: number;
   row: number;
   cooldown = 0;
+  priority: TargetPriority = 'first';
   container: Phaser.GameObjects.Container;
   rangeCircle: Phaser.GameObjects.Arc;
   private barrel: Phaser.GameObjects.Rectangle;
@@ -33,13 +34,31 @@ export default class Tower {
 
   findTarget(enemies: Enemy[]): Enemy | null {
     let best: Enemy | null = null;
-    let bestProgress = -1;
+    // 'first' targets whoever is closest to the Núcleo (highest waypointIndex); 'last'
+    // targets whoever just arrived (lowest); 'strongest' targets the toughest enemy type
+    // in range (highest maxHp) — using maxHp instead of current hp keeps the tower locked
+    // onto the same target type instead of hopping targets as hp drops mid-fight.
+    let bestScore = this.priority === 'last' ? Infinity : -1;
     for (const e of enemies) {
       if (!e.alive) continue;
       const dist = Phaser.Math.Distance.Between(this.x, this.y, e.x, e.y);
-      if (dist <= this.def.range && e.waypointIndex > bestProgress) {
-        bestProgress = e.waypointIndex;
-        best = e;
+      if (dist > this.def.range) continue;
+
+      if (this.priority === 'last') {
+        if (e.waypointIndex < bestScore) {
+          bestScore = e.waypointIndex;
+          best = e;
+        }
+      } else if (this.priority === 'strongest') {
+        if (e.maxHp > bestScore) {
+          bestScore = e.maxHp;
+          best = e;
+        }
+      } else {
+        if (e.waypointIndex > bestScore) {
+          bestScore = e.waypointIndex;
+          best = e;
+        }
       }
     }
     return best;

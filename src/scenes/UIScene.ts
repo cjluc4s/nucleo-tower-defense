@@ -6,9 +6,10 @@ import {
   BOTTOM_BAR_HEIGHT,
   TOWER_DEFS,
   DIFFICULTY_DEFS,
+  TARGET_PRIORITY_LABELS,
   computeSellPanelBounds,
 } from '../game/constants';
-import type { DifficultyKey } from '../game/constants';
+import type { DifficultyKey, TargetPriority } from '../game/constants';
 import { MAP_DEFS, getTowerCost } from '../game/maps';
 import { getAvailableTowerKeys } from '../game/progress';
 import type { MapCompletionResult } from '../game/progress';
@@ -32,6 +33,7 @@ interface TowerSelection {
   y: number;
   name: string;
   sellPrice: number;
+  priority: TargetPriority;
 }
 
 export default class UIScene extends Phaser.Scene {
@@ -238,7 +240,7 @@ export default class UIScene extends Phaser.Scene {
       .rectangle(panelX, panelY, bounds.width, bounds.height, 0x0b1119, 0.95)
       .setStrokeStyle(2, 0xe74c3c, 0.8);
     const nameText = this.add
-      .text(panelX, panelY - 17, data.name, {
+      .text(panelX, panelY - 40, data.name, {
         fontFamily: 'Arial',
         fontSize: '13px',
         color: '#ffffff',
@@ -247,10 +249,10 @@ export default class UIScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     const sellBtn = this.add
-      .rectangle(panelX, panelY + 12, 150, 28, 0xe74c3c)
+      .rectangle(panelX, panelY - 13, 190, 26, 0xe74c3c)
       .setInteractive({ useHandCursor: true });
     const sellLabel = this.add
-      .text(panelX, panelY + 12, `Vender por $${data.sellPrice}`, {
+      .text(panelX, panelY - 13, `Vender por $${data.sellPrice}`, {
         fontFamily: 'Arial',
         fontSize: '12px',
         color: '#ffffff',
@@ -261,7 +263,49 @@ export default class UIScene extends Phaser.Scene {
     sellBtn.on('pointerout', () => sellBtn.setFillStyle(0xe74c3c));
     sellBtn.on('pointerdown', () => EventBus.emit('request-sell-tower'));
 
-    container.add([bg, nameText, sellBtn, sellLabel]);
+    const focusLabel = this.add
+      .text(panelX, panelY + 8, 'FOCO', {
+        fontFamily: 'Arial',
+        fontSize: '10px',
+        color: '#5d7a94',
+        fontStyle: 'bold',
+        letterSpacing: 1,
+      })
+      .setOrigin(0.5);
+
+    const elements: Phaser.GameObjects.GameObject[] = [bg, nameText, sellBtn, sellLabel, focusLabel];
+
+    const priorities: TargetPriority[] = ['first', 'strongest', 'last'];
+    const btnWidth = 70;
+    const btnGap = 4;
+    const rowY = panelY + 30;
+    const startX = panelX - (btnWidth + btnGap);
+
+    priorities.forEach((key, i) => {
+      const active = data.priority === key;
+      const bx = startX + i * (btnWidth + btnGap);
+      const btn = this.add
+        .rectangle(bx, rowY, btnWidth, 24, active ? 0x2de1fc : 0x2c3e50, 1)
+        .setInteractive({ useHandCursor: true });
+      const label = this.add
+        .text(bx, rowY, TARGET_PRIORITY_LABELS[key], {
+          fontFamily: 'Arial',
+          fontSize: '10px',
+          color: active ? '#0b1119' : '#ffffff',
+          fontStyle: 'bold',
+          align: 'center',
+          wordWrap: { width: btnWidth - 6 },
+        })
+        .setOrigin(0.5);
+      btn.on('pointerover', () => {
+        if (data.priority !== key) btn.setFillStyle(0x34495e);
+      });
+      btn.on('pointerout', () => btn.setFillStyle(active ? 0x2de1fc : 0x2c3e50));
+      btn.on('pointerdown', () => EventBus.emit('request-set-tower-priority', key));
+      elements.push(btn, label);
+    });
+
+    container.add(elements);
     this.sellPanel = container;
   }
 

@@ -9,9 +9,9 @@ export const GAME_HEIGHT = TOP_BAR_HEIGHT + GRID_ROWS * GRID_SIZE + BOTTOM_BAR_H
 
 // Shared by GameScene (to ignore clicks that land on the panel, so they don't also
 // re-trigger tower selection underneath) and UIScene (to actually draw the panel).
-export const SELL_PANEL_WIDTH = 170;
-export const SELL_PANEL_HEIGHT = 62;
-const SELL_PANEL_OFFSET_Y = 66;
+export const SELL_PANEL_WIDTH = 228;
+export const SELL_PANEL_HEIGHT = 104;
+const SELL_PANEL_OFFSET_Y = 88;
 
 export function computeSellPanelBounds(
   towerX: number,
@@ -68,6 +68,14 @@ export const DIFFICULTY_DEFS: Record<DifficultyKey, DifficultyDef> = {
     rewardMultiplier: 0.5,
     color: 0xe74c3c,
   },
+};
+
+export type TargetPriority = 'first' | 'last' | 'strongest';
+
+export const TARGET_PRIORITY_LABELS: Record<TargetPriority, string> = {
+  first: 'Primeiro',
+  last: 'Último',
+  strongest: 'Mais Forte',
 };
 
 export interface TowerDef {

@@ -8,7 +8,7 @@ import {
   TOWER_DEFS,
   DIFFICULTY_DEFS,
 } from '../game/constants';
-import type { DifficultyKey } from '../game/constants';
+import type { DifficultyKey, TargetPriority } from '../game/constants';
 import { computePathPoints, computeBlockedCells, cellKey, isInGrid, gridToPixel } from '../game/path';
 import { MAP_DEFS, getTowerCost } from '../game/maps';
 import { isTowerUnlocked, recordMapCompletion } from '../game/progress';
@@ -100,6 +100,7 @@ export default class GameScene extends Phaser.Scene {
       this.gameSpeed = speed;
     });
     EventBus.on('request-sell-tower', () => this.sellTower());
+    EventBus.on('request-set-tower-priority', (priority: TargetPriority) => this.setTowerPriority(priority));
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.cleanupListeners());
 
@@ -114,6 +115,7 @@ export default class GameScene extends Phaser.Scene {
     EventBus.off('set-auto-wave');
     EventBus.off('set-game-speed');
     EventBus.off('request-sell-tower');
+    EventBus.off('request-set-tower-priority');
   }
 
   private continueEndless() {
@@ -134,12 +136,28 @@ export default class GameScene extends Phaser.Scene {
     if (this.selectedTower) this.selectedTower.rangeCircle.setVisible(false);
     this.selectedTower = tower;
     tower.rangeCircle.setVisible(true);
+    this.emitTowerSelected(tower);
+  }
+
+  private emitTowerSelected(tower: Tower) {
     EventBus.emit('tower-selected', {
       x: tower.x,
       y: tower.y,
       name: tower.def.name,
       sellPrice: this.sellPriceFor(tower),
+      priority: tower.priority,
     });
+  }
+
+  private setTowerPriority(priority: TargetPriority) {
+    if (!this.selectedTower) return;
+    this.selectedTower.priority = priority;
+    // Same click-collision fix as sellTower(): this button lives in UIScene at the same
+    // canvas coordinates, and its pointerdown fires before this scene's raw scene-wide
+    // listener for that click — without this flag, that stray click would immediately
+    // deselect the tower (landing on an empty cell) right after we just updated it.
+    this.suppressNextClick = true;
+    this.emitTowerSelected(this.selectedTower);
   }
 
   private deselectTower() {
