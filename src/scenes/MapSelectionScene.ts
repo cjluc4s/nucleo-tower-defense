@@ -3,7 +3,7 @@ import { GAME_WIDTH, GAME_HEIGHT } from '../game/constants';
 import { MAP_DEFS, MAP_TIER_ORDER, MAP_TIER_LABELS } from '../game/maps';
 import type { MapTier } from '../game/maps';
 
-const TIER_COLORS: Record<MapTier, number> = {
+export const TIER_COLORS: Record<MapTier, number> = {
   iniciante: 0x4da6ff,
   intermediario: 0x9b59b6,
   avancado: 0xe67e22,
