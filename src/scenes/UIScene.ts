@@ -1,5 +1,13 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, TOP_BAR_HEIGHT, BOTTOM_BAR_HEIGHT, TOWER_DEFS, DIFFICULTY_DEFS } from '../game/constants';
+import {
+  GAME_WIDTH,
+  GAME_HEIGHT,
+  TOP_BAR_HEIGHT,
+  BOTTOM_BAR_HEIGHT,
+  TOWER_DEFS,
+  DIFFICULTY_DEFS,
+  computeSellPanelBounds,
+} from '../game/constants';
 import type { DifficultyKey } from '../game/constants';
 import { MAP_DEFS } from '../game/maps';
 import { getAvailableTowerKeys } from '../game/progress';
@@ -17,6 +25,13 @@ interface GameState {
   totalWaves: number;
   waveActive: boolean;
   endless: boolean;
+}
+
+interface TowerSelection {
+  x: number;
+  y: number;
+  name: string;
+  sellPrice: number;
 }
 
 export default class UIScene extends Phaser.Scene {
@@ -37,6 +52,7 @@ export default class UIScene extends Phaser.Scene {
   private difficulty: DifficultyKey = 'medium';
   private mapKey = 'roteamento';
   private winBonus?: MapCompletionResult;
+  private sellPanel?: Phaser.GameObjects.Container;
   private state: GameState = { gold: 0, lives: 0, wave: 1, totalWaves: 1, waveActive: false, endless: false };
 
   constructor() {
@@ -53,6 +69,7 @@ export default class UIScene extends Phaser.Scene {
     this.overlay = undefined;
     this.selectedKey = null;
     this.winBonus = undefined;
+    this.sellPanel = undefined;
     this.autoWaveEnabled = false;
     this.gameSpeed = 1;
 
@@ -163,6 +180,8 @@ export default class UIScene extends Phaser.Scene {
       this.winBonus = bonus;
       this.showOverlay(true);
     });
+    EventBus.on('tower-selected', (data: TowerSelection) => this.showSellPanel(data));
+    EventBus.on('tower-deselected', () => this.hideSellPanel());
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       EventBus.off('state');
@@ -170,6 +189,8 @@ export default class UIScene extends Phaser.Scene {
       EventBus.off('game-over');
       EventBus.off('game-win');
       EventBus.off('cancel-tower-selection');
+      EventBus.off('tower-selected');
+      EventBus.off('tower-deselected');
     });
 
     this.selectTower(null);
@@ -201,6 +222,51 @@ export default class UIScene extends Phaser.Scene {
     this.autoWaveLabel.setText(this.autoWaveEnabled ? 'Auto: ON' : 'Auto: OFF');
     this.autoWaveLabel.setColor(this.autoWaveEnabled ? '#0b1119' : '#ffffff');
     EventBus.emit('set-auto-wave', this.autoWaveEnabled);
+  }
+
+  private showSellPanel(data: TowerSelection) {
+    this.sellPanel?.destroy();
+
+    const bounds = computeSellPanelBounds(data.x, data.y);
+    const panelX = bounds.x + bounds.width / 2;
+    const panelY = bounds.y + bounds.height / 2;
+
+    const container = this.add.container(0, 0);
+
+    const bg = this.add
+      .rectangle(panelX, panelY, bounds.width, bounds.height, 0x0b1119, 0.95)
+      .setStrokeStyle(2, 0xe74c3c, 0.8);
+    const nameText = this.add
+      .text(panelX, panelY - 17, data.name, {
+        fontFamily: 'Arial',
+        fontSize: '13px',
+        color: '#ffffff',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5);
+
+    const sellBtn = this.add
+      .rectangle(panelX, panelY + 12, 150, 28, 0xe74c3c)
+      .setInteractive({ useHandCursor: true });
+    const sellLabel = this.add
+      .text(panelX, panelY + 12, `Vender por $${data.sellPrice}`, {
+        fontFamily: 'Arial',
+        fontSize: '12px',
+        color: '#ffffff',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5);
+    sellBtn.on('pointerover', () => sellBtn.setFillStyle(0xc0392b));
+    sellBtn.on('pointerout', () => sellBtn.setFillStyle(0xe74c3c));
+    sellBtn.on('pointerdown', () => EventBus.emit('request-sell-tower'));
+
+    container.add([bg, nameText, sellBtn, sellLabel]);
+    this.sellPanel = container;
+  }
+
+  private hideSellPanel() {
+    this.sellPanel?.destroy();
+    this.sellPanel = undefined;
   }
 
   private toggleSpeed() {

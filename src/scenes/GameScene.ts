@@ -41,6 +41,8 @@ export default class GameScene extends Phaser.Scene {
   private autoStartTimer = 0;
   private wasWaveActive = false;
   private gameSpeed = 1;
+  private selectedTower: Tower | null = null;
+  private suppressNextClick = false;
 
   constructor() {
     super('GameScene');
@@ -69,6 +71,8 @@ export default class GameScene extends Phaser.Scene {
     this.autoStartTimer = 0;
     this.wasWaveActive = false;
     this.gameSpeed = 1;
+    this.selectedTower = null;
+    this.suppressNextClick = false;
 
     this.cameras.main.setBackgroundColor('#16212c');
     this.drawGrid();
@@ -86,6 +90,7 @@ export default class GameScene extends Phaser.Scene {
     EventBus.on('select-tower', (key: string | null) => {
       this.selectedTowerKey = key;
       if (!key) this.hoverGraphics.clear();
+      this.deselectTower();
     });
     EventBus.on('request-start-wave', () => this.startNextWave());
     EventBus.on('request-state', () => this.emitState());
@@ -94,6 +99,7 @@ export default class GameScene extends Phaser.Scene {
     EventBus.on('set-game-speed', (speed: number) => {
       this.gameSpeed = speed;
     });
+    EventBus.on('request-sell-tower', () => this.sellTower());
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.cleanupListeners());
 
@@ -107,6 +113,7 @@ export default class GameScene extends Phaser.Scene {
     EventBus.off('continue-endless');
     EventBus.off('set-auto-wave');
     EventBus.off('set-game-speed');
+    EventBus.off('request-sell-tower');
   }
 
   private continueEndless() {
@@ -121,6 +128,42 @@ export default class GameScene extends Phaser.Scene {
     if (enabled && !this.gameEnded && !this.waveManager.active) {
       this.startNextWave();
     }
+  }
+
+  private selectTowerForSell(tower: Tower) {
+    if (this.selectedTower) this.selectedTower.rangeCircle.setVisible(false);
+    this.selectedTower = tower;
+    tower.rangeCircle.setVisible(true);
+    EventBus.emit('tower-selected', {
+      x: tower.x,
+      y: tower.y,
+      name: tower.def.name,
+      sellPrice: this.sellPriceFor(tower),
+    });
+  }
+
+  private deselectTower() {
+    if (!this.selectedTower) return;
+    this.selectedTower.rangeCircle.setVisible(false);
+    this.selectedTower = null;
+    EventBus.emit('tower-deselected');
+  }
+
+  private sellPriceFor(tower: Tower): number {
+    return Math.round(tower.def.cost * 0.25);
+  }
+
+  private sellTower() {
+    if (!this.selectedTower || this.gameEnded) return;
+    const tower = this.selectedTower;
+    this.gold += this.sellPriceFor(tower);
+    this.towers = this.towers.filter((t) => t !== tower);
+    this.occupied.delete(cellKey(tower.col, tower.row));
+    tower.destroy();
+    this.selectedTower = null;
+    this.suppressNextClick = true;
+    EventBus.emit('tower-deselected');
+    this.emitState();
   }
 
   private drawGrid() {
@@ -206,12 +249,39 @@ export default class GameScene extends Phaser.Scene {
   private handleClick(pointer: Phaser.Input.Pointer) {
     if (pointer.rightButtonDown()) {
       EventBus.emit('cancel-tower-selection');
+      this.deselectTower();
       return;
     }
-    if (!this.selectedTowerKey || this.gameEnded) return;
-    if (!isTowerUnlocked(this.selectedTowerKey)) return;
+    if (this.gameEnded) return;
+
+    // The sell button is a UIScene object at these same canvas coordinates. Its own
+    // pointerdown handler (in UIScene) runs before this raw scene-wide listener, so by
+    // the time we get here the sale is already done and this.selectedTower is already
+    // null — checking "did the click land on the panel" against *current* state doesn't
+    // work. sellTower() sets this flag instead, so we can just swallow this click outright.
+    if (this.suppressNextClick) {
+      this.suppressNextClick = false;
+      return;
+    }
+
     const { col, row } = this.pixelToCell(pointer.x, pointer.y);
-    if (!isInGrid(col, row) || !this.isCellBuildable(col, row)) return;
+    if (!isInGrid(col, row)) return;
+
+    if (!this.selectedTowerKey) {
+      const clicked = this.towers.find((t) => t.col === col && t.row === row);
+      if (clicked) {
+        if (this.selectedTower === clicked) {
+          this.deselectTower();
+        } else {
+          this.selectTowerForSell(clicked);
+        }
+      } else {
+        this.deselectTower();
+      }
+      return;
+    }
+
+    if (!isTowerUnlocked(this.selectedTowerKey) || !this.isCellBuildable(col, row)) return;
 
     const def = TOWER_DEFS[this.selectedTowerKey];
     if (this.gold < def.cost) {

@@ -7,6 +7,31 @@ export const GRID_OFFSET_Y = TOP_BAR_HEIGHT;
 export const GAME_WIDTH = GRID_COLS * GRID_SIZE;
 export const GAME_HEIGHT = TOP_BAR_HEIGHT + GRID_ROWS * GRID_SIZE + BOTTOM_BAR_HEIGHT;
 
+// Shared by GameScene (to ignore clicks that land on the panel, so they don't also
+// re-trigger tower selection underneath) and UIScene (to actually draw the panel).
+export const SELL_PANEL_WIDTH = 170;
+export const SELL_PANEL_HEIGHT = 62;
+const SELL_PANEL_OFFSET_Y = 66;
+
+export function computeSellPanelBounds(
+  towerX: number,
+  towerY: number,
+): { x: number; y: number; width: number; height: number } {
+  const aboveY = towerY - SELL_PANEL_OFFSET_Y;
+  const centerY =
+    aboveY - SELL_PANEL_HEIGHT / 2 < TOP_BAR_HEIGHT + 6 ? towerY + SELL_PANEL_OFFSET_Y : aboveY;
+  const centerX = Math.min(
+    Math.max(towerX, SELL_PANEL_WIDTH / 2 + 8),
+    GAME_WIDTH - SELL_PANEL_WIDTH / 2 - 8,
+  );
+  return {
+    x: centerX - SELL_PANEL_WIDTH / 2,
+    y: centerY - SELL_PANEL_HEIGHT / 2,
+    width: SELL_PANEL_WIDTH,
+    height: SELL_PANEL_HEIGHT,
+  };
+}
+
 export type DifficultyKey = 'easy' | 'medium' | 'hard';
 
 export interface DifficultyDef {
