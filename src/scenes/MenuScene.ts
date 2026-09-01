@@ -49,7 +49,7 @@ export default class MenuScene extends Phaser.Scene {
       this.scene.start('ShopScene'),
     );
 
-    const currencyY = center + 174;
+    const currencyY = center + 196;
 
     const currencyValue = this.add.text(0, currencyY, `${getCurrency()}`, {
       fontFamily: 'Arial',
