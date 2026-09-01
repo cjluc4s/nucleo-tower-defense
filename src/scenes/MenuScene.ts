@@ -85,22 +85,43 @@ export default class MenuScene extends Phaser.Scene {
     shopButton.on('pointerout', () => shopButton.setFillStyle(0x1abc9c));
     shopButton.on('pointerdown', () => this.scene.start('ShopScene'));
 
-    const currencyValue = this.add.text(0, center + 168, `${getCurrency()}`, {
+    const currencyY = center + 174;
+
+    const currencyValue = this.add.text(0, currencyY, `${getCurrency()}`, {
       fontFamily: 'Arial',
-      fontSize: '20px',
+      fontSize: '24px',
       color: '#1abc9c',
       fontStyle: 'bold',
     });
-    const currencyLabel = this.add.text(0, center + 168, ' Dados Recuperados', {
+    const currencyLabel = this.add.text(0, currencyY, ' Dados Recuperados', {
       fontFamily: 'Arial',
-      fontSize: '13px',
-      color: '#9fb3c8',
+      fontSize: '14px',
+      color: '#e8eef2',
     });
     const currencyWidth = currencyValue.width + currencyLabel.width;
-    currencyValue.setPosition(centerX - currencyWidth / 2, center + 168).setOrigin(0, 0.5);
-    currencyLabel
-      .setPosition(centerX - currencyWidth / 2 + currencyValue.width, center + 168)
-      .setOrigin(0, 0.5);
+    currencyValue.setPosition(centerX - currencyWidth / 2, currencyY).setOrigin(0, 0.5);
+    currencyLabel.setPosition(centerX - currencyWidth / 2 + currencyValue.width, currencyY).setOrigin(0, 0.5);
+
+    const currencyPillPaddingX = 22;
+    const currencyPillHeight = 38;
+    const currencyPill = this.add.graphics();
+    currencyPill.fillStyle(0x000000, 0.55);
+    currencyPill.fillRoundedRect(
+      centerX - currencyWidth / 2 - currencyPillPaddingX,
+      currencyY - currencyPillHeight / 2,
+      currencyWidth + currencyPillPaddingX * 2,
+      currencyPillHeight,
+      10,
+    );
+    currencyPill.lineStyle(1.5, 0x1abc9c, 0.6);
+    currencyPill.strokeRoundedRect(
+      centerX - currencyWidth / 2 - currencyPillPaddingX,
+      currencyY - currencyPillHeight / 2,
+      currencyWidth + currencyPillPaddingX * 2,
+      currencyPillHeight,
+      10,
+    );
+    this.children.moveBelow(currencyPill, currencyValue);
 
     const hintY = GAME_HEIGHT - 46;
 
