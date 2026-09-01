@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, ENEMY_DEFS, TOWER_DEFS, DIFFICULTY_DEFS } from '../game/constants';
-import { MAP_DEFS, MAP_TIER_ORDER, MAP_TIER_LABELS } from '../game/maps';
+import { SECTOR_DEFS, MAP_TIER_ORDER, MAP_TIER_LABELS } from '../game/maps';
 import type { DifficultyKey } from '../game/constants';
 import { TIER_COLORS } from './MapSelectionScene';
 
@@ -111,14 +111,13 @@ export default class AboutScene extends Phaser.Scene {
     y += setoresHeader.height + 8;
 
     for (const tier of MAP_TIER_ORDER) {
-      const map = Object.values(MAP_DEFS).find((m) => m.tier === tier);
-      if (!map) continue;
+      const sector = SECTOR_DEFS[tier];
       y = this.addEntryRow(LEFT_MARGIN, y, {
         markerColor: TIER_COLORS[tier],
         markerShape: 'circle',
-        name: `${map.name}  ·  ${MAP_TIER_LABELS[tier]}`,
+        name: `${sector.name}  ·  ${MAP_TIER_LABELS[tier]}`,
         nameColor: '#ffffff',
-        description: map.description,
+        description: sector.description,
         fullWidth: true,
       });
     }

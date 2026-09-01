@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, DIFFICULTY_DEFS } from '../game/constants';
 import type { DifficultyKey } from '../game/constants';
-import { MAP_DEFS } from '../game/maps';
+import { MAP_DEFS, SECTOR_DEFS } from '../game/maps';
 
 const DESCRIPTIONS: Record<DifficultyKey, string> = {
   easy: 'Mais ouro para começar — ideal para relaxar',
@@ -27,9 +27,10 @@ export default class DifficultyScene extends Phaser.Scene {
   create() {
     this.cameras.main.setBackgroundColor('#0f1620');
     const mapDef = MAP_DEFS[this.mapKey];
+    const sector = SECTOR_DEFS[mapDef.tier];
 
     this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 230, mapDef.name, {
+      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 230, `${sector.name} · ${mapDef.routeName}`, {
         fontFamily: 'Arial',
         fontSize: '16px',
         color: '#5d7a94',
@@ -101,6 +102,6 @@ export default class DifficultyScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
-    back.on('pointerdown', () => this.scene.start('MapSelectionScene'));
+    back.on('pointerdown', () => this.scene.start('SectorMapScene', { tier: mapDef.tier }));
   }
 }

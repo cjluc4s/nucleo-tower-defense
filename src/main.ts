@@ -5,6 +5,7 @@ import MenuScene from './scenes/MenuScene';
 import AboutScene from './scenes/AboutScene';
 import ShopScene from './scenes/ShopScene';
 import MapSelectionScene from './scenes/MapSelectionScene';
+import SectorMapScene from './scenes/SectorMapScene';
 import DifficultyScene from './scenes/DifficultyScene';
 import GameScene from './scenes/GameScene';
 import UIScene from './scenes/UIScene';
@@ -18,5 +19,5 @@ new Phaser.Game({
   scale: {
     mode: Phaser.Scale.NONE,
   },
-  scene: [MenuScene, AboutScene, ShopScene, MapSelectionScene, DifficultyScene, GameScene, UIScene],
+  scene: [MenuScene, AboutScene, ShopScene, MapSelectionScene, SectorMapScene, DifficultyScene, GameScene, UIScene],
 });

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../game/constants';
-import { MAP_DEFS, MAP_TIER_ORDER, MAP_TIER_LABELS } from '../game/maps';
+import { SECTOR_DEFS, MAP_TIER_ORDER, MAP_TIER_LABELS } from '../game/maps';
 import type { MapTier } from '../game/maps';
 
 export const TIER_COLORS: Record<MapTier, number> = {
@@ -30,9 +30,7 @@ export default class MapSelectionScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    const maps = MAP_TIER_ORDER.map((tier) => Object.values(MAP_DEFS).find((m) => m.tier === tier)).filter(
-      (m) => m !== undefined,
-    );
+    const sectors = MAP_TIER_ORDER.map((tier) => SECTOR_DEFS[tier]);
 
     const tierStyle = {
       fontFamily: 'Arial',
@@ -54,20 +52,20 @@ export default class MapSelectionScene extends Phaser.Scene {
     let y = 227;
     let lastCardBottom = y;
 
-    for (const map of maps) {
-      const color = TIER_COLORS[map.tier];
+    for (const sector of sectors) {
+      const color = TIER_COLORS[sector.tier];
 
       // Measure each block's real height first so the card grows to fit a wrapped
       // description instead of clipping/cramping it against a fixed height.
-      const tierProbe = this.add.text(0, 0, MAP_TIER_LABELS[map.tier].toUpperCase(), tierStyle);
+      const tierProbe = this.add.text(0, 0, MAP_TIER_LABELS[sector.tier].toUpperCase(), tierStyle);
       const tierHeight = tierProbe.height;
       tierProbe.destroy();
 
-      const nameProbe = this.add.text(0, 0, map.name, nameStyle);
+      const nameProbe = this.add.text(0, 0, sector.name, nameStyle);
       const nameHeight = nameProbe.height;
       nameProbe.destroy();
 
-      const descProbe = this.add.text(0, 0, map.description, descStyle);
+      const descProbe = this.add.text(0, 0, sector.description, descStyle);
       const descHeight = descProbe.height;
       descProbe.destroy();
 
@@ -81,17 +79,22 @@ export default class MapSelectionScene extends Phaser.Scene {
         .setInteractive({ useHandCursor: true });
 
       let cy = y + padding;
-      this.add.text(GAME_WIDTH / 2 - CARD_WIDTH / 2 + 18, cy, MAP_TIER_LABELS[map.tier].toUpperCase(), tierStyle);
+      this.add.text(
+        GAME_WIDTH / 2 - CARD_WIDTH / 2 + 18,
+        cy,
+        MAP_TIER_LABELS[sector.tier].toUpperCase(),
+        tierStyle,
+      );
       cy += tierHeight + 8;
 
-      this.add.text(GAME_WIDTH / 2, cy, map.name, nameStyle).setOrigin(0.5, 0);
+      this.add.text(GAME_WIDTH / 2, cy, sector.name, nameStyle).setOrigin(0.5, 0);
       cy += nameHeight + 8;
 
-      this.add.text(GAME_WIDTH / 2, cy, map.description, descStyle).setOrigin(0.5, 0);
+      this.add.text(GAME_WIDTH / 2, cy, sector.description, descStyle).setOrigin(0.5, 0);
 
       btn.on('pointerover', () => btn.setAlpha(0.7));
       btn.on('pointerout', () => btn.setAlpha(0.85));
-      btn.on('pointerdown', () => this.scene.start('DifficultyScene', { mapKey: map.key }));
+      btn.on('pointerdown', () => this.scene.start('SectorMapScene', { tier: sector.tier }));
 
       lastCardBottom = y + cardHeight;
       y = lastCardBottom + CARD_GAP;

@@ -11,8 +11,8 @@ no fim do caminho) contra ondas de **Vetores** (inimigos: Fragmento, Pulso, Mon�
 **Módulos de Defesa** (torres: Emissor, Rastreador, Disruptor). Ver `src/scenes/AboutScene.ts`
 para a história completa e `src/game/constants.ts` para os valores de cada entidade.
 
-Fluxo de telas: `MenuScene → AboutScene` (opcional) `→ MapSelectionScene → DifficultyScene →
-GameScene + UIScene` (rodam em paralelo, UIScene é o HUD sobreposto).
+Fluxo de telas: `MenuScene → AboutScene` (opcional) `→ MapSelectionScene → SectorMapScene →
+DifficultyScene → GameScene + UIScene` (rodam em paralelo, UIScene é o HUD sobreposto).
 
 ## Rodar e verificar
 
@@ -30,9 +30,22 @@ Depois de qualquer mudança visual/gameplay, teste no navegador antes de conside
 - **`src/game/`** é lógica pura (sem `Phaser.Scene` como dependência direta, exceto tipos) —
   `Enemy`, `Tower`, `Projectile`, `WaveManager` recebem `pathPoints` por parâmetro, nunca leem
   um caminho fixo global. Isso é o que permite múltiplos mapas sem duplicar lógica.
-- **`src/game/maps.ts`** define cada setor: `pathGrid` (waypoints em coordenadas de grade),
-  `waveCurve` (curva de dificuldade das ondas) e `goldBonus`. Adicionar um setor novo é só
-  adicionar uma entrada aqui — nada mais precisa mudar.
+- **`src/game/maps.ts`** separa **setor** (`SectorDef`: nome, descrição geral e `tier` —
+  Perímetro/Roteamento/Firewall) de **rota** (`MapDef`: um traçado jogável específico dentro de
+  um setor — `pathGrid`, `waveCurve`, `goldBonus`, moeda de recompensa). Um setor pode ter
+  várias rotas (hoje 2 por setor: "Rota Primária" e "Rota Alternativa", ambas com a mesma
+  `waveCurve`/`goldBonus` — só o traçado muda). Adicionar uma rota nova a um setor existente é
+  só adicionar uma entrada em `MAP_DEFS` com o mesmo `tier`; adicionar um setor novo é adicionar
+  uma entrada em `SECTOR_DEFS` (mais pelo menos uma rota em `MAP_DEFS` com esse `tier`) — nada
+  mais precisa mudar. `MapDef.key` é o identificador salvo em `progress.ts` (`completedMaps`),
+  então **nunca renomear uma key existente** sem migrar o progresso salvo dos jogadores.
+- Fluxo de seleção: `MapSelectionScene` lista os setores (usa `SECTOR_DEFS`) → `SectorMapScene`
+  lista as rotas daquele setor (`getMapsByTier(tier)`) → `DifficultyScene` recebe o `mapKey`
+  escolhido. O botão Voltar de `DifficultyScene` volta para `SectorMapScene` (não para
+  `MapSelectionScene`), preservando o "drill-down". Hoje todas as rotas de um setor já
+  aparecem liberadas assim que o setor é alcançado — não há gate de progressão entre rotas do
+  mesmo setor ainda (decisão explícita do usuário, para revisitar quando o jogo estiver numa
+  fase de manutenção/otimização, trocando para liberar a 2ª rota só após completar a 1ª).
 - **Dificuldade do mapa (setor) ≠ dificuldade econômica (Fácil/Médio/Difícil).** São dois eixos
   independentes e isso é proposital: o setor define o *layout* do caminho e em qual "onda
   virtual" a progressão começa; a dificuldade define ouro/vidas/recompensa. Não misture os dois
@@ -69,11 +82,12 @@ Depois de qualquer mudança visual/gameplay, teste no navegador antes de conside
 
 ## Estado atual (implementado)
 
-3 setores (Perímetro/Roteamento/Firewall), 3 dificuldades, bônus de ouro por setor, modo
-infinito, tela Sobre com a história, imagem de fundo no menu, sistema de reiniciar/voltar ao
-menu preservando setor+dificuldade. Loja (`ShopScene`) com moeda persistente (Dados Recuperados,
-ganha ao completar setores) e o 4º módulo **Limitador** (aplica lentidão, primeiro item
-comprável — 150 Dados Recuperados).
+3 setores (Perímetro/Roteamento/Firewall), 2 rotas por setor (6 mapas jogáveis no total,
+liberadas desde o início), 3 dificuldades, bônus de ouro por setor, modo infinito, tela Sobre
+com a história, imagem de fundo no menu, sistema de reiniciar/voltar ao menu preservando
+rota+dificuldade. Loja (`ShopScene`) com moeda persistente (Dados Recuperados, ganha ao
+completar rotas) e o 4º módulo **Limitador** (aplica lentidão, primeiro item comprável — 150
+Dados Recuperados).
 
 ## Roadmap combinado (ainda não implementado)
 
@@ -83,6 +97,9 @@ comprável — 150 Dados Recuperados).
 - Sistema de medalhas/conquistas visual por setor × dificuldade (o progresso já é rastreado em
   `progress.ts`, falta só uma UI pra exibir isso)
 - Modificadores de desafio opcionais (ex: sem vender módulos)
+- Gate de progressão entre rotas do mesmo setor (hoje as 2 rotas de cada setor já vêm liberadas
+  desde o início, de propósito — só trocar para "libera a 2ª rota ao completar a 1ª" quando o
+  jogo estiver numa fase de manutenção/otimização, não antes)
 
 Ao propor essas features, seguir a mesma régua já estabelecida: **tudo tem que fazer sentido
 dentro da história do Núcleo** — nada de mecânica emprestada de outro jogo sem adaptar ao tema
