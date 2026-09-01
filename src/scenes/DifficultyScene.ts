@@ -65,8 +65,9 @@ export default class DifficultyScene extends Phaser.Scene {
         })
         .setOrigin(0.5);
 
+      const totalGold = def.startingGold + mapDef.goldBonus;
       this.add
-        .text(GAME_WIDTH / 2, y - 4, `Ouro: ${def.startingGold}   •   Vidas: ${def.startingLives}`, {
+        .text(GAME_WIDTH / 2, y - 4, `Ouro: ${totalGold}   •   Vidas: ${def.startingLives}`, {
           fontFamily: 'Arial',
           fontSize: '14px',
           color: '#0b1119',
