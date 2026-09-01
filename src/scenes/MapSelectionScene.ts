@@ -10,7 +10,7 @@ export const TIER_COLORS: Record<MapTier, number> = {
 };
 
 const CARD_WIDTH = 460;
-const CARD_HEIGHT = 104;
+const CARD_MIN_HEIGHT = 104;
 const CARD_GAP = 26;
 
 export default class MapSelectionScene extends Phaser.Scene {
@@ -34,53 +34,71 @@ export default class MapSelectionScene extends Phaser.Scene {
       (m) => m !== undefined,
     );
 
-    let y = GAME_HEIGHT / 2 - 100;
+    const tierStyle = {
+      fontFamily: 'Arial',
+      fontSize: '11px',
+      color: '#0b1119',
+      fontStyle: 'bold',
+      letterSpacing: 1,
+    };
+    const nameStyle = { fontFamily: 'Arial', fontSize: '20px', color: '#0b1119', fontStyle: 'bold' };
+    const descStyle = {
+      fontFamily: 'Arial',
+      fontSize: '12px',
+      color: '#1c2b33',
+      align: 'center' as const,
+      wordWrap: { width: CARD_WIDTH - 60 },
+    };
+    const padding = 16;
+
+    let y = 227;
+    let lastCardBottom = y;
 
     for (const map of maps) {
       const color = TIER_COLORS[map.tier];
+
+      // Measure each block's real height first so the card grows to fit a wrapped
+      // description instead of clipping/cramping it against a fixed height.
+      const tierProbe = this.add.text(0, 0, MAP_TIER_LABELS[map.tier].toUpperCase(), tierStyle);
+      const tierHeight = tierProbe.height;
+      tierProbe.destroy();
+
+      const nameProbe = this.add.text(0, 0, map.name, nameStyle);
+      const nameHeight = nameProbe.height;
+      nameProbe.destroy();
+
+      const descProbe = this.add.text(0, 0, map.description, descStyle);
+      const descHeight = descProbe.height;
+      descProbe.destroy();
+
+      const contentHeight = tierHeight + 8 + nameHeight + 8 + descHeight;
+      const cardHeight = Math.max(CARD_MIN_HEIGHT, contentHeight + padding * 2);
+      const cardCenterY = y + cardHeight / 2;
+
       const btn = this.add
-        .rectangle(GAME_WIDTH / 2, y, CARD_WIDTH, CARD_HEIGHT, color, 0.85)
+        .rectangle(GAME_WIDTH / 2, cardCenterY, CARD_WIDTH, cardHeight, color, 0.85)
         .setStrokeStyle(2, 0x000000, 0.18)
         .setInteractive({ useHandCursor: true });
 
-      this.add
-        .text(GAME_WIDTH / 2 - CARD_WIDTH / 2 + 18, y - 32, MAP_TIER_LABELS[map.tier].toUpperCase(), {
-          fontFamily: 'Arial',
-          fontSize: '11px',
-          color: '#0b1119',
-          fontStyle: 'bold',
-          letterSpacing: 1,
-        })
-        .setOrigin(0, 0.5);
+      let cy = y + padding;
+      this.add.text(GAME_WIDTH / 2 - CARD_WIDTH / 2 + 18, cy, MAP_TIER_LABELS[map.tier].toUpperCase(), tierStyle);
+      cy += tierHeight + 8;
 
-      this.add
-        .text(GAME_WIDTH / 2, y - 10, map.name, {
-          fontFamily: 'Arial',
-          fontSize: '20px',
-          color: '#0b1119',
-          fontStyle: 'bold',
-        })
-        .setOrigin(0.5);
+      this.add.text(GAME_WIDTH / 2, cy, map.name, nameStyle).setOrigin(0.5, 0);
+      cy += nameHeight + 8;
 
-      this.add
-        .text(GAME_WIDTH / 2, y + 22, map.description, {
-          fontFamily: 'Arial',
-          fontSize: '12px',
-          color: '#1c2b33',
-          align: 'center',
-          wordWrap: { width: CARD_WIDTH - 60 },
-        })
-        .setOrigin(0.5);
+      this.add.text(GAME_WIDTH / 2, cy, map.description, descStyle).setOrigin(0.5, 0);
 
       btn.on('pointerover', () => btn.setAlpha(0.7));
       btn.on('pointerout', () => btn.setAlpha(0.85));
       btn.on('pointerdown', () => this.scene.start('DifficultyScene', { mapKey: map.key }));
 
-      y += CARD_HEIGHT + CARD_GAP;
+      lastCardBottom = y + cardHeight;
+      y = lastCardBottom + CARD_GAP;
     }
 
     const back = this.add
-      .text(GAME_WIDTH / 2, y + 10, '← Voltar', {
+      .text(GAME_WIDTH / 2, lastCardBottom + 40, '← Voltar', {
         fontFamily: 'Arial',
         fontSize: '15px',
         color: '#5d7a94',

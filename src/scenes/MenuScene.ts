@@ -37,53 +37,17 @@ export default class MenuScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    const playButton = this.add
-      .rectangle(centerX, center, 220, 56, 0x3498db)
-      .setInteractive({ useHandCursor: true });
-    this.add
-      .text(centerX, center, 'JOGAR', {
-        fontFamily: 'Arial',
-        fontSize: '22px',
-        color: '#ffffff',
-        fontStyle: 'bold',
-      })
-      .setOrigin(0.5);
+    this.createButton(centerX, center, 220, 56, 0x3498db, 0x2980b9, 'JOGAR', '#ffffff', '22px', () =>
+      this.scene.start('MapSelectionScene'),
+    );
 
-    playButton.on('pointerover', () => playButton.setFillStyle(0x2980b9));
-    playButton.on('pointerout', () => playButton.setFillStyle(0x3498db));
-    playButton.on('pointerdown', () => this.scene.start('MapSelectionScene'));
+    this.createButton(centerX, center + 72, 220, 48, 0x2c3e50, 0x34495e, 'SOBRE', '#ffffff', '18px', () =>
+      this.scene.start('AboutScene'),
+    );
 
-    const aboutButton = this.add
-      .rectangle(centerX, center + 72, 220, 48, 0x2c3e50)
-      .setInteractive({ useHandCursor: true });
-    this.add
-      .text(centerX, center + 72, 'SOBRE', {
-        fontFamily: 'Arial',
-        fontSize: '18px',
-        color: '#ffffff',
-        fontStyle: 'bold',
-      })
-      .setOrigin(0.5);
-
-    aboutButton.on('pointerover', () => aboutButton.setFillStyle(0x34495e));
-    aboutButton.on('pointerout', () => aboutButton.setFillStyle(0x2c3e50));
-    aboutButton.on('pointerdown', () => this.scene.start('AboutScene'));
-
-    const shopButton = this.add
-      .rectangle(centerX, center + 132, 220, 48, 0x1abc9c)
-      .setInteractive({ useHandCursor: true });
-    this.add
-      .text(centerX, center + 132, 'LOJA', {
-        fontFamily: 'Arial',
-        fontSize: '18px',
-        color: '#0b1119',
-        fontStyle: 'bold',
-      })
-      .setOrigin(0.5);
-
-    shopButton.on('pointerover', () => shopButton.setFillStyle(0x16a085));
-    shopButton.on('pointerout', () => shopButton.setFillStyle(0x1abc9c));
-    shopButton.on('pointerdown', () => this.scene.start('ShopScene'));
+    this.createButton(centerX, center + 132, 220, 48, 0x1abc9c, 0x16a085, 'LOJA', '#0b1119', '18px', () =>
+      this.scene.start('ShopScene'),
+    );
 
     const currencyY = center + 174;
 
@@ -146,5 +110,40 @@ export default class MenuScene extends Phaser.Scene {
         color: '#c8d6e0',
       })
       .setOrigin(0.5);
+  }
+
+  private createButton(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    color: number,
+    hoverColor: number,
+    label: string,
+    labelColor: string,
+    fontSize: string,
+    onClick: () => void,
+  ): void {
+    const radius = 12;
+    const bg = this.add.graphics();
+    const draw = (fill: number) => {
+      bg.clear();
+      bg.fillStyle(fill, 1);
+      bg.fillRoundedRect(x - width / 2, y - height / 2, width, height, radius);
+    };
+    draw(color);
+    bg.setInteractive(
+      new Phaser.Geom.Rectangle(x - width / 2, y - height / 2, width, height),
+      Phaser.Geom.Rectangle.Contains,
+    );
+    bg.input!.cursor = 'pointer';
+
+    this.add
+      .text(x, y, label, { fontFamily: 'Arial', fontSize, color: labelColor, fontStyle: 'bold' })
+      .setOrigin(0.5);
+
+    bg.on('pointerover', () => draw(hoverColor));
+    bg.on('pointerout', () => draw(color));
+    bg.on('pointerdown', onClick);
   }
 }
