@@ -85,13 +85,22 @@ export default class MenuScene extends Phaser.Scene {
     shopButton.on('pointerout', () => shopButton.setFillStyle(0x1abc9c));
     shopButton.on('pointerdown', () => this.scene.start('ShopScene'));
 
-    this.add
-      .text(centerX, center + 168, `Você tem: ${getCurrency()} Dados Recuperados`, {
-        fontFamily: 'Arial',
-        fontSize: '13px',
-        color: '#9fb3c8',
-      })
-      .setOrigin(0.5);
+    const currencyValue = this.add.text(0, center + 168, `${getCurrency()}`, {
+      fontFamily: 'Arial',
+      fontSize: '20px',
+      color: '#1abc9c',
+      fontStyle: 'bold',
+    });
+    const currencyLabel = this.add.text(0, center + 168, ' Dados Recuperados', {
+      fontFamily: 'Arial',
+      fontSize: '13px',
+      color: '#9fb3c8',
+    });
+    const currencyWidth = currencyValue.width + currencyLabel.width;
+    currencyValue.setPosition(centerX - currencyWidth / 2, center + 168).setOrigin(0, 0.5);
+    currencyLabel
+      .setPosition(centerX - currencyWidth / 2 + currencyValue.width, center + 168)
+      .setOrigin(0, 0.5);
 
     const hintY = GAME_HEIGHT - 46;
 
