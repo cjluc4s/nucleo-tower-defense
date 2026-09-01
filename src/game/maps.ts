@@ -1,4 +1,4 @@
-import { GRID_COLS } from './constants';
+import { GRID_COLS, TOWER_DEFS } from './constants';
 import type { WaveCurveConfig } from './constants';
 import type { GridPoint } from './path';
 
@@ -12,6 +12,11 @@ export interface SectorDef {
   name: string;
   shortName: string;
   description: string;
+  // In-game build cost per tower key, specific to this sector — cheaper in easier sectors,
+  // pricier in harder ones. Firewall's Disruptor is deliberately pushed above the highest
+  // possible starting gold there (300, on Fácil) so it can never be bought at wave 1 —
+  // the player has to earn it, not just pick the difficulty that lets them skip that.
+  towerCosts: Record<string, number>;
 }
 
 export const SECTOR_DEFS: Record<MapTier, SectorDef> = {
@@ -20,18 +25,21 @@ export const SECTOR_DEFS: Record<MapTier, SectorDef> = {
     name: 'Setor 1: Perímetro',
     shortName: 'Perímetro',
     description: 'A borda externa da rede. Espaço livre, ideal para aprender o básico.',
+    towerCosts: { basic: 35, sniper: 65, splash: 90, limiter: 50 },
   },
   intermediario: {
     tier: 'intermediario',
     name: 'Setor 2: Roteamento',
     shortName: 'Roteamento',
     description: 'A camada de distribuição de dados. Espaço moderado, rotas mais sinuosas.',
+    towerCosts: { basic: 50, sniper: 90, splash: 120, limiter: 70 },
   },
   avancado: {
     tier: 'avancado',
     name: 'Setor 3: Firewall',
     shortName: 'Firewall',
     description: 'A camada de proteção mais próxima do núcleo. Denso, apertado, hostil.',
+    towerCosts: { basic: 70, sniper: 125, splash: 320, limiter: 100 },
   },
 };
 
@@ -185,4 +193,8 @@ export const MAP_TIER_LABELS: Record<MapTier, string> = {
 
 export function getMapsByTier(tier: MapTier): MapDef[] {
   return Object.values(MAP_DEFS).filter((m) => m.tier === tier);
+}
+
+export function getTowerCost(towerKey: string, tier: MapTier): number {
+  return SECTOR_DEFS[tier].towerCosts[towerKey] ?? TOWER_DEFS[towerKey].cost;
 }

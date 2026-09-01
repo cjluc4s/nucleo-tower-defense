@@ -10,7 +10,7 @@ import {
 } from '../game/constants';
 import type { DifficultyKey } from '../game/constants';
 import { computePathPoints, computeBlockedCells, cellKey, isInGrid, gridToPixel } from '../game/path';
-import { MAP_DEFS } from '../game/maps';
+import { MAP_DEFS, getTowerCost } from '../game/maps';
 import { isTowerUnlocked, recordMapCompletion } from '../game/progress';
 import type { MapCompletionResult } from '../game/progress';
 import Enemy from '../game/Enemy';
@@ -284,14 +284,16 @@ export default class GameScene extends Phaser.Scene {
     if (!isTowerUnlocked(this.selectedTowerKey) || !this.isCellBuildable(col, row)) return;
 
     const def = TOWER_DEFS[this.selectedTowerKey];
-    if (this.gold < def.cost) {
+    const tier = MAP_DEFS[this.mapKey].tier;
+    const cost = getTowerCost(this.selectedTowerKey, tier);
+    if (this.gold < cost) {
       EventBus.emit('insufficient-gold');
       return;
     }
 
-    this.gold -= def.cost;
+    this.gold -= cost;
     const center = gridToPixel(col, row);
-    const tower = new Tower(this, def, center.x, center.y, col, row);
+    const tower = new Tower(this, { ...def, cost }, center.x, center.y, col, row);
     this.towers.push(tower);
     this.occupied.add(cellKey(col, row));
     this.emitState();

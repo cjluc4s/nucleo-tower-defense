@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, TOWER_DEFS } from '../game/constants';
+import { MAP_TIER_ORDER, getTowerCost } from '../game/maps';
 import { getCurrency, isTowerUnlocked, unlockTower } from '../game/progress';
 
 export default class ShopScene extends Phaser.Scene {
@@ -91,7 +92,11 @@ export default class ShopScene extends Phaser.Scene {
       lineSpacing: 2,
     };
     const statsStyle = { fontFamily: 'Arial', fontSize: '12px', color: '#5d7a94' };
-    const statsLabel = `Dano ${def.damage} · Alcance ${def.range} · Custo em jogo: $${def.cost}`;
+    const costsByTier = MAP_TIER_ORDER.map((tier) => getTowerCost(key, tier));
+    const minCost = Math.min(...costsByTier);
+    const maxCost = Math.max(...costsByTier);
+    const costLabel = minCost === maxCost ? `$${minCost}` : `$${minCost}–$${maxCost} (varia por setor)`;
+    const statsLabel = `Dano ${def.damage} · Alcance ${def.range} · Custo em jogo: ${costLabel}`;
 
     // Measure each block's real height first so the card can be sized to fit its content,
     // the same pattern used in AboutScene — no fixed card height that text can overflow.

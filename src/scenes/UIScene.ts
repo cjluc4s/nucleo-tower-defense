@@ -9,7 +9,7 @@ import {
   computeSellPanelBounds,
 } from '../game/constants';
 import type { DifficultyKey } from '../game/constants';
-import { MAP_DEFS } from '../game/maps';
+import { MAP_DEFS, getTowerCost } from '../game/maps';
 import { getAvailableTowerKeys } from '../game/progress';
 import type { MapCompletionResult } from '../game/progress';
 import EventBus from '../game/EventBus';
@@ -141,7 +141,8 @@ export default class UIScene extends Phaser.Scene {
         .setInteractive({ useHandCursor: true });
       rect.setStrokeStyle(2, 0xffffff, 0);
 
-      this.add.text(bx + 10, GAME_HEIGHT - BOTTOM_BAR_HEIGHT + 18, `${def.name}\n$${def.cost}`, {
+      const cost = getTowerCost(key, mapDef.tier);
+      this.add.text(bx + 10, GAME_HEIGHT - BOTTOM_BAR_HEIGHT + 18, `${def.name}\n$${cost}`, {
         fontFamily: 'Arial',
         fontSize: '13px',
         color: '#0b1119',
