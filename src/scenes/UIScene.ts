@@ -28,6 +28,9 @@ export default class UIScene extends Phaser.Scene {
   private autoWaveBtn!: Phaser.GameObjects.Rectangle;
   private autoWaveLabel!: Phaser.GameObjects.Text;
   private autoWaveEnabled = false;
+  private speedBtn!: Phaser.GameObjects.Rectangle;
+  private speedLabel!: Phaser.GameObjects.Text;
+  private gameSpeed = 1;
   private towerButtons: { key: string; rect: Phaser.GameObjects.Rectangle }[] = [];
   private overlay?: Phaser.GameObjects.Container;
   private selectedKey: string | null = null;
@@ -51,6 +54,7 @@ export default class UIScene extends Phaser.Scene {
     this.selectedKey = null;
     this.winBonus = undefined;
     this.autoWaveEnabled = false;
+    this.gameSpeed = 1;
 
     this.add.rectangle(0, 0, GAME_WIDTH, TOP_BAR_HEIGHT, 0x0b1119, 0.9).setOrigin(0, 0);
 
@@ -60,21 +64,28 @@ export default class UIScene extends Phaser.Scene {
 
     const difficultyDef = DIFFICULTY_DEFS[this.difficulty];
     const mapDef = MAP_DEFS[this.mapKey];
-    const difficultyLabel = this.add.text(430, 12, `${mapDef.shortName} · ${difficultyDef.name}`, {
+    this.add.text(430, 13, `${mapDef.shortName} · ${difficultyDef.name}`, {
       fontFamily: 'Arial',
-      fontSize: '18px',
+      fontSize: '15px',
       color: toCssColor(difficultyDef.color),
       fontStyle: 'bold',
     });
 
+    // Right-anchored, fixed positions — independent of the (variable-width) difficulty
+    // label above, so a long sector/difficulty combo can never collide with these.
+    const menuX = GAME_WIDTH - 104;
+    const restartX = GAME_WIDTH - 204;
+    const speedX = restartX - 10 - 60;
+    const autoX = speedX - 10 - 70;
+
     this.autoWaveBtn = this.add
-      .rectangle(430 + difficultyLabel.width + 24, 6, 116, 32, 0x555555, 0.9)
+      .rectangle(autoX, 6, 70, 32, 0x555555, 0.9)
       .setOrigin(0, 0)
       .setInteractive({ useHandCursor: true });
     this.autoWaveLabel = this.add
-      .text(430 + difficultyLabel.width + 24 + 58, 22, 'Auto: OFF', {
+      .text(autoX + 35, 22, 'AUTO', {
         fontFamily: 'Arial',
-        fontSize: '13px',
+        fontSize: '12px',
         color: '#ffffff',
         fontStyle: 'bold',
       })
@@ -83,8 +94,24 @@ export default class UIScene extends Phaser.Scene {
     this.autoWaveBtn.on('pointerout', () => this.autoWaveBtn.setAlpha(1));
     this.autoWaveBtn.on('pointerdown', () => this.toggleAutoWave());
 
-    this.createTopBarButton(GAME_WIDTH - 204, 'Reiniciar', 0x8e5a2c, () => this.restartRun());
-    this.createTopBarButton(GAME_WIDTH - 104, 'Menu', 0x555555, () => this.goToMenu());
+    this.speedBtn = this.add
+      .rectangle(speedX, 6, 60, 32, 0x555555, 0.9)
+      .setOrigin(0, 0)
+      .setInteractive({ useHandCursor: true });
+    this.speedLabel = this.add
+      .text(speedX + 30, 22, '1x', {
+        fontFamily: 'Arial',
+        fontSize: '13px',
+        color: '#ffffff',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5);
+    this.speedBtn.on('pointerover', () => this.speedBtn.setAlpha(0.8));
+    this.speedBtn.on('pointerout', () => this.speedBtn.setAlpha(1));
+    this.speedBtn.on('pointerdown', () => this.toggleSpeed());
+
+    this.createTopBarButton(restartX, 'Reiniciar', 0x8e5a2c, () => this.restartRun());
+    this.createTopBarButton(menuX, 'Menu', 0x555555, () => this.goToMenu());
 
     this.add.rectangle(0, GAME_HEIGHT - BOTTOM_BAR_HEIGHT, GAME_WIDTH, BOTTOM_BAR_HEIGHT, 0x0b1119, 0.9).setOrigin(0, 0);
 
@@ -174,6 +201,14 @@ export default class UIScene extends Phaser.Scene {
     this.autoWaveLabel.setText(this.autoWaveEnabled ? 'Auto: ON' : 'Auto: OFF');
     this.autoWaveLabel.setColor(this.autoWaveEnabled ? '#0b1119' : '#ffffff');
     EventBus.emit('set-auto-wave', this.autoWaveEnabled);
+  }
+
+  private toggleSpeed() {
+    this.gameSpeed = this.gameSpeed === 1 ? 2 : 1;
+    this.speedBtn.setFillStyle(this.gameSpeed === 2 ? 0xf39c12 : 0x555555);
+    this.speedLabel.setText(`${this.gameSpeed}x`);
+    this.speedLabel.setColor(this.gameSpeed === 2 ? '#0b1119' : '#ffffff');
+    EventBus.emit('set-game-speed', this.gameSpeed);
   }
 
   private restartRun() {

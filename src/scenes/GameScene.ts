@@ -40,6 +40,7 @@ export default class GameScene extends Phaser.Scene {
   private autoStartWaves = false;
   private autoStartTimer = 0;
   private wasWaveActive = false;
+  private gameSpeed = 1;
 
   constructor() {
     super('GameScene');
@@ -67,6 +68,7 @@ export default class GameScene extends Phaser.Scene {
     this.autoStartWaves = false;
     this.autoStartTimer = 0;
     this.wasWaveActive = false;
+    this.gameSpeed = 1;
 
     this.cameras.main.setBackgroundColor('#16212c');
     this.drawGrid();
@@ -89,6 +91,9 @@ export default class GameScene extends Phaser.Scene {
     EventBus.on('request-state', () => this.emitState());
     EventBus.on('continue-endless', () => this.continueEndless());
     EventBus.on('set-auto-wave', (enabled: boolean) => this.setAutoStartWaves(enabled));
+    EventBus.on('set-game-speed', (speed: number) => {
+      this.gameSpeed = speed;
+    });
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.cleanupListeners());
 
@@ -101,6 +106,7 @@ export default class GameScene extends Phaser.Scene {
     EventBus.off('request-state');
     EventBus.off('continue-endless');
     EventBus.off('set-auto-wave');
+    EventBus.off('set-game-speed');
   }
 
   private continueEndless() {
@@ -238,11 +244,12 @@ export default class GameScene extends Phaser.Scene {
 
   update(_time: number, delta: number) {
     if (this.gameEnded) return;
+    const scaledDelta = delta * this.gameSpeed;
 
-    this.waveManager.update(delta);
+    this.waveManager.update(scaledDelta);
 
     for (const enemy of this.enemies) {
-      enemy.update(delta);
+      enemy.update(scaledDelta);
     }
 
     for (const enemy of this.enemies) {
@@ -261,7 +268,7 @@ export default class GameScene extends Phaser.Scene {
     });
 
     for (const tower of this.towers) {
-      tower.update(delta);
+      tower.update(scaledDelta);
       const target = tower.findTarget(this.enemies);
       if (target) {
         tower.aimAt(target);
@@ -284,7 +291,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     for (const proj of this.projectiles) {
-      proj.update(delta);
+      proj.update(scaledDelta);
     }
     this.projectiles = this.projectiles.filter((p) => p.alive);
 
@@ -312,7 +319,7 @@ export default class GameScene extends Phaser.Scene {
     this.wasWaveActive = this.waveManager.active;
 
     if (this.autoStartTimer > 0) {
-      this.autoStartTimer -= delta;
+      this.autoStartTimer -= scaledDelta;
       if (this.autoStartTimer <= 0) {
         this.autoStartTimer = 0;
         this.startNextWave();
