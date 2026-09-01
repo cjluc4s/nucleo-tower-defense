@@ -37,6 +37,9 @@ export default class GameScene extends Phaser.Scene {
   private nucleoCore!: Phaser.GameObjects.Arc;
   private gameEnded = false;
   private officialWinTriggered = false;
+  private autoStartWaves = false;
+  private autoStartTimer = 0;
+  private wasWaveActive = false;
 
   constructor() {
     super('GameScene');
@@ -61,6 +64,9 @@ export default class GameScene extends Phaser.Scene {
     this.selectedTowerKey = null;
     this.gameEnded = false;
     this.officialWinTriggered = false;
+    this.autoStartWaves = false;
+    this.autoStartTimer = 0;
+    this.wasWaveActive = false;
 
     this.cameras.main.setBackgroundColor('#16212c');
     this.drawGrid();
@@ -82,6 +88,7 @@ export default class GameScene extends Phaser.Scene {
     EventBus.on('request-start-wave', () => this.startNextWave());
     EventBus.on('request-state', () => this.emitState());
     EventBus.on('continue-endless', () => this.continueEndless());
+    EventBus.on('set-auto-wave', (enabled: boolean) => this.setAutoStartWaves(enabled));
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.cleanupListeners());
 
@@ -93,6 +100,7 @@ export default class GameScene extends Phaser.Scene {
     EventBus.off('request-start-wave');
     EventBus.off('request-state');
     EventBus.off('continue-endless');
+    EventBus.off('set-auto-wave');
   }
 
   private continueEndless() {
@@ -100,6 +108,13 @@ export default class GameScene extends Phaser.Scene {
     this.gameEnded = false;
     this.waveManager.enableEndless();
     this.emitState();
+  }
+
+  private setAutoStartWaves(enabled: boolean) {
+    this.autoStartWaves = enabled;
+    if (enabled && !this.gameEnded && !this.waveManager.active) {
+      this.startNextWave();
+    }
   }
 
   private drawGrid() {
@@ -289,6 +304,19 @@ export default class GameScene extends Phaser.Scene {
       const completion = recordMapCompletion(mapDef.key, mapDef.currencyFirstClear, mapDef.currencyRepeatClear);
       this.endGame(true, completion);
       return;
+    }
+
+    if (this.wasWaveActive && !this.waveManager.active && this.autoStartWaves) {
+      this.autoStartTimer = 1500;
+    }
+    this.wasWaveActive = this.waveManager.active;
+
+    if (this.autoStartTimer > 0) {
+      this.autoStartTimer -= delta;
+      if (this.autoStartTimer <= 0) {
+        this.autoStartTimer = 0;
+        this.startNextWave();
+      }
     }
 
     this.emitState();

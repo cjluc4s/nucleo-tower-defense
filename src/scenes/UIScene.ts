@@ -25,6 +25,9 @@ export default class UIScene extends Phaser.Scene {
   private waveText!: Phaser.GameObjects.Text;
   private startWaveBtn!: Phaser.GameObjects.Rectangle;
   private startWaveLabel!: Phaser.GameObjects.Text;
+  private autoWaveBtn!: Phaser.GameObjects.Rectangle;
+  private autoWaveLabel!: Phaser.GameObjects.Text;
+  private autoWaveEnabled = false;
   private towerButtons: { key: string; rect: Phaser.GameObjects.Rectangle }[] = [];
   private overlay?: Phaser.GameObjects.Container;
   private selectedKey: string | null = null;
@@ -47,6 +50,7 @@ export default class UIScene extends Phaser.Scene {
     this.overlay = undefined;
     this.selectedKey = null;
     this.winBonus = undefined;
+    this.autoWaveEnabled = false;
 
     this.add.rectangle(0, 0, GAME_WIDTH, TOP_BAR_HEIGHT, 0x0b1119, 0.9).setOrigin(0, 0);
 
@@ -56,12 +60,28 @@ export default class UIScene extends Phaser.Scene {
 
     const difficultyDef = DIFFICULTY_DEFS[this.difficulty];
     const mapDef = MAP_DEFS[this.mapKey];
-    this.add.text(430, 12, `${mapDef.shortName} · ${difficultyDef.name}`, {
+    const difficultyLabel = this.add.text(430, 12, `${mapDef.shortName} · ${difficultyDef.name}`, {
       fontFamily: 'Arial',
       fontSize: '18px',
       color: toCssColor(difficultyDef.color),
       fontStyle: 'bold',
     });
+
+    this.autoWaveBtn = this.add
+      .rectangle(430 + difficultyLabel.width + 24, 6, 116, 32, 0x555555, 0.9)
+      .setOrigin(0, 0)
+      .setInteractive({ useHandCursor: true });
+    this.autoWaveLabel = this.add
+      .text(430 + difficultyLabel.width + 24 + 58, 22, 'Auto: OFF', {
+        fontFamily: 'Arial',
+        fontSize: '13px',
+        color: '#ffffff',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5);
+    this.autoWaveBtn.on('pointerover', () => this.autoWaveBtn.setAlpha(0.8));
+    this.autoWaveBtn.on('pointerout', () => this.autoWaveBtn.setAlpha(1));
+    this.autoWaveBtn.on('pointerdown', () => this.toggleAutoWave());
 
     this.createTopBarButton(GAME_WIDTH - 204, 'Reiniciar', 0x8e5a2c, () => this.restartRun());
     this.createTopBarButton(GAME_WIDTH - 104, 'Menu', 0x555555, () => this.goToMenu());
@@ -146,6 +166,14 @@ export default class UIScene extends Phaser.Scene {
     rect.on('pointerout', () => rect.setAlpha(1));
     rect.on('pointerdown', onClick);
     return rect;
+  }
+
+  private toggleAutoWave() {
+    this.autoWaveEnabled = !this.autoWaveEnabled;
+    this.autoWaveBtn.setFillStyle(this.autoWaveEnabled ? 0x1abc9c : 0x555555);
+    this.autoWaveLabel.setText(this.autoWaveEnabled ? 'Auto: ON' : 'Auto: OFF');
+    this.autoWaveLabel.setColor(this.autoWaveEnabled ? '#0b1119' : '#ffffff');
+    EventBus.emit('set-auto-wave', this.autoWaveEnabled);
   }
 
   private restartRun() {
