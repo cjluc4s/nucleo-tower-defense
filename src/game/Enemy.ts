@@ -14,6 +14,9 @@ export default class Enemy {
   container: Phaser.GameObjects.Container;
   private readonly pathPoints: { x: number; y: number }[];
   private hpBarFill: Phaser.GameObjects.Rectangle;
+  private slowRing: Phaser.GameObjects.Arc;
+  private slowMultiplier = 1;
+  private slowRemaining = 0;
 
   constructor(scene: Phaser.Scene, def: EnemyDef, pathPoints: { x: number; y: number }[]) {
     this.scene = scene;
@@ -27,13 +30,27 @@ export default class Enemy {
 
     this.container = scene.add.container(this.x, this.y);
     const body = scene.add.circle(0, 0, def.radius, def.color).setStrokeStyle(2, 0x000000, 0.35);
+    this.slowRing = scene.add
+      .circle(0, 0, def.radius + 4, 0x1abc9c, 0)
+      .setStrokeStyle(2, 0x1abc9c, 0.9)
+      .setVisible(false);
     const hpBarBg = scene.add.rectangle(0, -def.radius - 10, def.radius * 2, 5, 0x000000, 0.5);
     this.hpBarFill = scene.add.rectangle(0, -def.radius - 10, def.radius * 2, 5, 0x2ecc71);
-    this.container.add([body, hpBarBg, this.hpBarFill]);
+    this.container.add([body, this.slowRing, hpBarBg, this.hpBarFill]);
   }
 
   update(dt: number) {
     if (!this.alive) return;
+
+    if (this.slowRemaining > 0) {
+      this.slowRemaining -= dt;
+      if (this.slowRemaining <= 0) {
+        this.slowRemaining = 0;
+        this.slowMultiplier = 1;
+        this.slowRing.setVisible(false);
+      }
+    }
+
     const target = this.pathPoints[this.waypointIndex];
     if (!target) {
       this.leaked = true;
@@ -43,7 +60,7 @@ export default class Enemy {
     const dx = target.x - this.x;
     const dy = target.y - this.y;
     const dist = Math.hypot(dx, dy);
-    const step = (this.def.speed * dt) / 1000;
+    const step = (this.def.speed * this.slowMultiplier * dt) / 1000;
     if (dist <= step) {
       this.x = target.x;
       this.y = target.y;
@@ -53,6 +70,12 @@ export default class Enemy {
       this.y += (dy / dist) * step;
     }
     this.container.setPosition(this.x, this.y);
+  }
+
+  applySlow(percent: number, durationMs: number) {
+    this.slowMultiplier = 1 - percent;
+    this.slowRemaining = durationMs;
+    this.slowRing.setVisible(true);
   }
 
   takeDamage(amount: number): boolean {

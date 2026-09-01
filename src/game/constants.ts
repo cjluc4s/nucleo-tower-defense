@@ -55,6 +55,11 @@ export interface TowerDef {
   projectileSpeed: number; // px/s
   color: number;
   splashRadius?: number;
+  slowPercent?: number; // 0-1, fraction of speed removed
+  slowDuration?: number; // ms
+  unlockedByDefault: boolean;
+  unlockCost?: number; // Dados Recuperados cost in the shop, when not unlocked by default
+  description?: string; // shown in the shop
 }
 
 export const TOWER_DEFS: Record<string, TowerDef> = {
@@ -67,6 +72,7 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
     fireRate: 550,
     projectileSpeed: 500,
     color: 0x4da6ff,
+    unlockedByDefault: true,
   },
   sniper: {
     key: 'sniper',
@@ -77,6 +83,7 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
     fireRate: 1300,
     projectileSpeed: 800,
     color: 0x9b59b6,
+    unlockedByDefault: true,
   },
   splash: {
     key: 'splash',
@@ -88,6 +95,22 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
     projectileSpeed: 350,
     color: 0xe67e22,
     splashRadius: 70,
+    unlockedByDefault: true,
+  },
+  limiter: {
+    key: 'limiter',
+    name: 'Limitador',
+    cost: 70,
+    range: 140,
+    damage: 5,
+    fireRate: 700,
+    projectileSpeed: 450,
+    color: 0x1abc9c,
+    slowPercent: 0.4,
+    slowDuration: 2000,
+    unlockedByDefault: false,
+    unlockCost: 150,
+    description: 'Reduz a velocidade dos vetores atingidos, prendendo-os no alcance dos outros módulos.',
   },
 };
 

@@ -13,6 +13,8 @@ export interface MapDef {
   pathGrid: GridPoint[];
   waveCurve: WaveCurveConfig;
   goldBonus: number;
+  currencyFirstClear: number;
+  currencyRepeatClear: number;
 }
 
 const EDGE = GRID_COLS - 1;
@@ -32,6 +34,8 @@ export const MAP_DEFS: Record<string, MapDef> = {
     ],
     waveCurve: { waveCount: 10, startGrunt: 6, gruntGrowth: 2, fastUnlockWave: 2, tankUnlockWave: 3 },
     goldBonus: 0,
+    currencyFirstClear: 50,
+    currencyRepeatClear: 10,
   },
   roteamento: {
     key: 'roteamento',
@@ -51,6 +55,8 @@ export const MAP_DEFS: Record<string, MapDef> = {
     ],
     waveCurve: { waveCount: 14, startGrunt: 14, gruntGrowth: 2, fastUnlockWave: 1, tankUnlockWave: 2 },
     goldBonus: 40,
+    currencyFirstClear: 80,
+    currencyRepeatClear: 15,
   },
   firewall: {
     key: 'firewall',
@@ -72,6 +78,8 @@ export const MAP_DEFS: Record<string, MapDef> = {
     ],
     waveCurve: { waveCount: 18, startGrunt: 24, gruntGrowth: 2, fastUnlockWave: 1, tankUnlockWave: 1 },
     goldBonus: 80,
+    currencyFirstClear: 120,
+    currencyRepeatClear: 25,
   },
 };
 

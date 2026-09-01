@@ -11,6 +11,8 @@ import {
 import type { DifficultyKey } from '../game/constants';
 import { computePathPoints, computeBlockedCells, cellKey, isInGrid, gridToPixel } from '../game/path';
 import { MAP_DEFS } from '../game/maps';
+import { isTowerUnlocked, recordMapCompletion } from '../game/progress';
+import type { MapCompletionResult } from '../game/progress';
 import Enemy from '../game/Enemy';
 import Tower from '../game/Tower';
 import Projectile from '../game/Projectile';
@@ -186,6 +188,7 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
     if (!this.selectedTowerKey || this.gameEnded) return;
+    if (!isTowerUnlocked(this.selectedTowerKey)) return;
     const { col, row } = this.pixelToCell(pointer.x, pointer.y);
     if (!isInGrid(col, row) || !this.isCellBuildable(col, row)) return;
 
@@ -258,7 +261,7 @@ export default class GameScene extends Phaser.Scene {
             tower.def.damage,
             tower.def.color,
             tower.def.splashRadius ?? 0,
-            (t, dmg, splash) => this.resolveHit(t, dmg, splash),
+            (t, dmg, splash) => this.resolveHit(t, dmg, splash, tower.def.slowPercent, tower.def.slowDuration),
           );
           this.projectiles.push(proj);
         }
@@ -282,16 +285,28 @@ export default class GameScene extends Phaser.Scene {
       this.enemies.length === 0
     ) {
       this.officialWinTriggered = true;
-      this.endGame(true);
+      const mapDef = MAP_DEFS[this.mapKey];
+      const completion = recordMapCompletion(mapDef.key, mapDef.currencyFirstClear, mapDef.currencyRepeatClear);
+      this.endGame(true, completion);
       return;
     }
 
     this.emitState();
   }
 
-  private resolveHit(target: Enemy, damage: number, splashRadius: number) {
+  private resolveHit(
+    target: Enemy,
+    damage: number,
+    splashRadius: number,
+    slowPercent?: number,
+    slowDuration?: number,
+  ) {
     const killed = target.takeDamage(damage);
     this.handleKill(target, killed);
+
+    if (slowPercent && slowDuration && target.alive) {
+      target.applySlow(slowPercent, slowDuration);
+    }
 
     if (splashRadius > 0) {
       this.showSplashEffect(target.x, target.y, splashRadius);
@@ -325,9 +340,13 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  private endGame(won: boolean) {
+  private endGame(won: boolean, completion?: MapCompletionResult) {
     this.gameEnded = true;
-    EventBus.emit(won ? 'game-win' : 'game-over');
+    if (won) {
+      EventBus.emit('game-win', completion);
+    } else {
+      EventBus.emit('game-over');
+    }
   }
 
   private emitState() {

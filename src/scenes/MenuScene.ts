@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT } from '../game/constants';
+import { getCurrency } from '../game/progress';
 
 export default class MenuScene extends Phaser.Scene {
   constructor() {
@@ -67,6 +68,30 @@ export default class MenuScene extends Phaser.Scene {
     aboutButton.on('pointerover', () => aboutButton.setFillStyle(0x34495e));
     aboutButton.on('pointerout', () => aboutButton.setFillStyle(0x2c3e50));
     aboutButton.on('pointerdown', () => this.scene.start('AboutScene'));
+
+    const shopButton = this.add
+      .rectangle(centerX, center + 132, 220, 48, 0x1abc9c)
+      .setInteractive({ useHandCursor: true });
+    this.add
+      .text(centerX, center + 132, 'LOJA', {
+        fontFamily: 'Arial',
+        fontSize: '18px',
+        color: '#0b1119',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5);
+
+    shopButton.on('pointerover', () => shopButton.setFillStyle(0x16a085));
+    shopButton.on('pointerout', () => shopButton.setFillStyle(0x1abc9c));
+    shopButton.on('pointerdown', () => this.scene.start('ShopScene'));
+
+    this.add
+      .text(centerX, center + 168, `Você tem: ${getCurrency()} Dados Recuperados`, {
+        fontFamily: 'Arial',
+        fontSize: '13px',
+        color: '#9fb3c8',
+      })
+      .setOrigin(0.5);
 
     const hintY = GAME_HEIGHT - 46;
 

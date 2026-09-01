@@ -47,6 +47,13 @@ Depois de qualquer mudança visual/gameplay, teste no navegador antes de conside
   adicionar uma cena nova nesse fluxo, seguir o mesmo padrão.
 - **`EventBus`** (`src/game/EventBus.ts`) é o canal de comunicação entre `GameScene` e
   `UIScene`, que rodam como cenas paralelas independentes.
+- **`src/game/progress.ts`** é a única fonte de verdade pra progresso persistente (`localStorage`,
+  chave `nucleo-progress-v1`): saldo de **Dados Recuperados** (moeda meta, ganha ao completar um
+  setor — mais na primeira vez que numa repetição, ver `MapDef.currencyFirstClear/RepeatClear`),
+  quais setores já foram completados ao menos uma vez, e quais módulos foram desbloqueados na
+  loja. **Nunca** ler/escrever `localStorage` direto fora desse módulo. Módulos com
+  `unlockedByDefault: false` em `TOWER_DEFS` só aparecem na barra de construção do `GameScene`
+  se `isTowerUnlocked()`/`getAvailableTowerKeys()` disser que sim.
 
 ## Armadilhas conhecidas (já mordemos essas)
 
@@ -64,13 +71,17 @@ Depois de qualquer mudança visual/gameplay, teste no navegador antes de conside
 
 3 setores (Perímetro/Roteamento/Firewall), 3 dificuldades, bônus de ouro por setor, modo
 infinito, tela Sobre com a história, imagem de fundo no menu, sistema de reiniciar/voltar ao
-menu preservando setor+dificuldade.
+menu preservando setor+dificuldade. Loja (`ShopScene`) com moeda persistente (Dados Recuperados,
+ganha ao completar setores) e o 4º módulo **Limitador** (aplica lentidão, primeiro item
+comprável — 150 Dados Recuperados).
 
 ## Roadmap combinado (ainda não implementado)
 
 - Setor Expert (4º tier)
 - Interferência de sinal / Line of Sight, reservado para os setores Avançado/Expert
-- Sistema de conclusão/medalhas por setor × dificuldade (provavelmente via `localStorage`)
+- Mais itens na loja além do Limitador (novos módulos, cosméticos, etc.)
+- Sistema de medalhas/conquistas visual por setor × dificuldade (o progresso já é rastreado em
+  `progress.ts`, falta só uma UI pra exibir isso)
 - Modificadores de desafio opcionais (ex: sem vender módulos)
 
 Ao propor essas features, seguir a mesma régua já estabelecida: **tudo tem que fazer sentido

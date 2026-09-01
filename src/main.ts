@@ -3,6 +3,7 @@ import './style.css';
 import { GAME_WIDTH, GAME_HEIGHT } from './game/constants';
 import MenuScene from './scenes/MenuScene';
 import AboutScene from './scenes/AboutScene';
+import ShopScene from './scenes/ShopScene';
 import MapSelectionScene from './scenes/MapSelectionScene';
 import DifficultyScene from './scenes/DifficultyScene';
 import GameScene from './scenes/GameScene';
@@ -17,5 +18,5 @@ new Phaser.Game({
   scale: {
     mode: Phaser.Scale.NONE,
   },
-  scene: [MenuScene, AboutScene, MapSelectionScene, DifficultyScene, GameScene, UIScene],
+  scene: [MenuScene, AboutScene, ShopScene, MapSelectionScene, DifficultyScene, GameScene, UIScene],
 });

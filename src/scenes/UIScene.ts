@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, TOP_BAR_HEIGHT, BOTTOM_BAR_HEIGHT, TOWER_DEFS, DIFFICULTY_DEFS } from '../game/constants';
 import type { DifficultyKey } from '../game/constants';
 import { MAP_DEFS } from '../game/maps';
+import { getAvailableTowerKeys } from '../game/progress';
+import type { MapCompletionResult } from '../game/progress';
 import EventBus from '../game/EventBus';
 
 function toCssColor(color: number): string {
@@ -28,6 +30,7 @@ export default class UIScene extends Phaser.Scene {
   private selectedKey: string | null = null;
   private difficulty: DifficultyKey = 'medium';
   private mapKey = 'roteamento';
+  private winBonus?: MapCompletionResult;
   private state: GameState = { gold: 0, lives: 0, wave: 1, totalWaves: 1, waveActive: false, endless: false };
 
   constructor() {
@@ -43,6 +46,7 @@ export default class UIScene extends Phaser.Scene {
     this.towerButtons = [];
     this.overlay = undefined;
     this.selectedKey = null;
+    this.winBonus = undefined;
 
     this.add.rectangle(0, 0, GAME_WIDTH, TOP_BAR_HEIGHT, 0x0b1119, 0.9).setOrigin(0, 0);
 
@@ -65,7 +69,7 @@ export default class UIScene extends Phaser.Scene {
     this.add.rectangle(0, GAME_HEIGHT - BOTTOM_BAR_HEIGHT, GAME_WIDTH, BOTTOM_BAR_HEIGHT, 0x0b1119, 0.9).setOrigin(0, 0);
 
     let bx = 16;
-    for (const key of Object.keys(TOWER_DEFS)) {
+    for (const key of getAvailableTowerKeys()) {
       const def = TOWER_DEFS[key];
       const rect = this.add
         .rectangle(bx, GAME_HEIGHT - BOTTOM_BAR_HEIGHT + 12, 150, 50, def.color, 0.85)
@@ -108,7 +112,10 @@ export default class UIScene extends Phaser.Scene {
     EventBus.on('state', (s: GameState) => this.updateState(s));
     EventBus.on('insufficient-gold', () => this.flashGold());
     EventBus.on('game-over', () => this.showOverlay(false));
-    EventBus.on('game-win', () => this.showOverlay(true));
+    EventBus.on('game-win', (bonus?: MapCompletionResult) => {
+      this.winBonus = bonus;
+      this.showOverlay(true);
+    });
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       EventBus.off('state');
@@ -221,7 +228,22 @@ export default class UIScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     const elements: Phaser.GameObjects.GameObject[] = [bg, title, subtitle];
-    let y = GAME_HEIGHT / 2 + 20;
+    let y = GAME_HEIGHT / 2 - 5;
+
+    if (won && this.winBonus) {
+      const bonusText = this.add
+        .text(
+          GAME_WIDTH / 2,
+          y,
+          `+${this.winBonus.amountEarned} Dados Recuperados${this.winBonus.wasFirstClear ? ' (primeira vez!)' : ''}`,
+          { fontFamily: 'Arial', fontSize: '14px', color: '#1abc9c', fontStyle: 'bold' },
+        )
+        .setOrigin(0.5);
+      elements.push(bonusText);
+      y += 30;
+    }
+
+    y += 25;
 
     if (won) {
       const [continueBtn, continueLabel] = this.createOverlayButton(y, 'Continuar (Modo Infinito)', 0x2de1fc, () => {
