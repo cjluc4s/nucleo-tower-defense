@@ -14,6 +14,7 @@ export default class Enemy {
   container: Phaser.GameObjects.Container;
   private readonly pathPoints: { x: number; y: number }[];
   private readonly cumulativeDistances: number[];
+  private body: Phaser.GameObjects.Arc;
   private hpBarFill: Phaser.GameObjects.Rectangle;
   private slowRing: Phaser.GameObjects.Arc;
   private slowMultiplier = 1;
@@ -36,14 +37,18 @@ export default class Enemy {
     this.y = start.y;
 
     this.container = scene.add.container(this.x, this.y);
-    const body = scene.add.circle(0, 0, def.radius, def.color).setStrokeStyle(2, 0x000000, 0.35);
+    this.body = scene.add.circle(0, 0, def.radius, def.color).setStrokeStyle(2, 0x000000, 0.35);
     this.slowRing = scene.add
       .circle(0, 0, def.radius + 4, 0x1abc9c, 0)
       .setStrokeStyle(2, 0x1abc9c, 0.9)
       .setVisible(false);
     const hpBarBg = scene.add.rectangle(0, -def.radius - 10, def.radius * 2, 5, 0x000000, 0.5);
     this.hpBarFill = scene.add.rectangle(0, -def.radius - 10, def.radius * 2, 5, 0x2ecc71);
-    this.container.add([body, this.slowRing, hpBarBg, this.hpBarFill]);
+    this.container.add([this.body, this.slowRing, hpBarBg, this.hpBarFill]);
+
+    // Quick pop-in on spawn instead of appearing instantly.
+    this.container.setScale(0);
+    scene.tweens.add({ targets: this.container, scale: 1, duration: 160, ease: 'Back.easeOut' });
   }
 
   update(dt: number) {
@@ -98,6 +103,7 @@ export default class Enemy {
     const pct = Math.max(this.hp, 0) / this.maxHp;
     this.hpBarFill.width = this.def.radius * 2 * pct;
     this.hpBarFill.setFillStyle(pct > 0.5 ? 0x2ecc71 : pct > 0.25 ? 0xf1c40f : 0xe74c3c);
+    this.flashHit();
     if (this.hp <= 0 && this.alive) {
       this.alive = false;
       return true; // killed
@@ -105,7 +111,22 @@ export default class Enemy {
     return false;
   }
 
+  private flashHit() {
+    this.body.setFillStyle(0xffffff);
+    this.scene.time.delayedCall(70, () => this.body.setFillStyle(this.def.color));
+  }
+
   destroy() {
-    this.container.destroy();
+    // The enemy is already excluded from simulation (removed from GameScene's active list,
+    // gold/lives already applied) the instant `alive` goes false — this only delays the
+    // container's visual removal so it shrinks/fades out instead of vanishing on the spot.
+    this.scene.tweens.add({
+      targets: this.container,
+      scale: 0,
+      alpha: 0,
+      duration: 160,
+      ease: 'Back.easeIn',
+      onComplete: () => this.container.destroy(),
+    });
   }
 }

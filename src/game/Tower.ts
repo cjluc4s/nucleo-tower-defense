@@ -30,6 +30,10 @@ export default class Tower {
 
     this.rangeCircle = scene.add.circle(x, y, def.range, 0xffffff, 0.06).setStrokeStyle(1, 0xffffff, 0.25);
     this.rangeCircle.setVisible(false);
+
+    // Quick pop-in on placement instead of appearing instantly.
+    this.container.setScale(0);
+    scene.tweens.add({ targets: this.container, scale: 1, duration: 180, ease: 'Back.easeOut' });
   }
 
   findTarget(enemies: Enemy[]): Enemy | null {
@@ -84,10 +88,27 @@ export default class Tower {
 
   fire() {
     this.cooldown = this.def.fireRate;
+    // Quick recoil punch on the barrel itself, so it reads correctly no matter which way
+    // it's currently aimed (animating .x directly would recoil along the wrong axis once
+    // rotated).
+    this.scene.tweens.add({
+      targets: this.barrel,
+      scaleX: 0.6,
+      duration: 60,
+      yoyo: true,
+      ease: 'Quad.easeOut',
+    });
   }
 
   destroy() {
-    this.container.destroy();
     this.rangeCircle.destroy();
+    this.scene.tweens.add({
+      targets: this.container,
+      scale: 0,
+      alpha: 0,
+      duration: 150,
+      ease: 'Back.easeIn',
+      onComplete: () => this.container.destroy(),
+    });
   }
 }
