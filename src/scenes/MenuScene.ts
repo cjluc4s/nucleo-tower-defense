@@ -15,7 +15,7 @@ export default class MenuScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#0f1620');
 
     this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'bg-menu').setDisplaySize(GAME_WIDTH, GAME_HEIGHT);
-    this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.35);
+    this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.55);
 
     const centerX = GAME_WIDTH / 2;
     const center = GAME_HEIGHT / 2;
