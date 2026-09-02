@@ -85,6 +85,26 @@ Depois de qualquer mudança visual/gameplay, teste no navegador antes de conside
   exports que já foram removidos há tempos. Não é bug de código — é cache. Fix:
   `rm -rf node_modules/.vite` e reiniciar o dev server (ou abrir uma aba nova do zero, já que o
   console de uma aba antiga também pode reter mensagens de erro obsoletas).
+- **Clique perdido entre cenas, sob `Phaser.Scale.FIT`**: um clique/toque na `UIScene`
+  (cena de cima) imediatamente seguido por um clique na `GameScene` (cena de baixo) faz o
+  Phaser **perder o evento `pointerdown` na cena de baixo** — mas o `pointerup` da mesma
+  interação chega certinho. Não reproduz com `Scale.NONE`, nem entre botões da mesma cena, nem
+  quando o clique anterior foi na própria `GameScene`. Causa raiz não totalmente mapeada, mas o
+  fix é: `GameScene` escuta a zona de clique da grade em `'pointerup'`, não `'pointerdown'` (ver
+  `GameScene.create()`). Como consequência, cancelar seleção com botão direito não pode usar
+  `pointer.rightButtonDown()` (lê o estado *atual* do botão — já falso no momento do `up`) —
+  usa `pointer.button === 2` (snapshot de qual botão dispara *este* evento) em `handleClick()`.
+  Se algum dia mexer nesse listener, testar exatamente essa sequência (clicar um botão da UI,
+  depois imediatamente a grade, sem mover o mouse) antes de considerar resolvido.
+- **`Phaser.Scale.CENTER_BOTH` vs. centralização por flexbox no CSS**: o Scale Manager já
+  centraliza o canvas dentro do elemento `#app` sozinho, via `margin-left`/`margin-top`
+  inline. Se o `#app` **também** tiver `display:flex; align-items:center; justify-content:center`,
+  os dois centering se somam e o canvas fica deslocado (mais visível em telas bem largas). O
+  `#app` não deve centralizar nada — só define o tamanho disponível; quem centraliza o canvas
+  dentro dele é o Phaser (`autoCenter: Phaser.Scale.CENTER_BOTH` em `main.ts`). Quem centraliza
+  o próprio `#app` na página (quando ele fica menor que a viewport por causa do `max-width`) é
+  o `body`, que pode ter seu próprio flex-center sem problema — o conflito é só entre o Phaser
+  e o `#app` diretamente.
 
 ## Estado atual (implementado)
 
@@ -92,8 +112,17 @@ Depois de qualquer mudança visual/gameplay, teste no navegador antes de conside
 liberadas desde o início), 3 dificuldades, bônus de ouro por setor, modo infinito, tela Sobre
 com a história, imagem de fundo no menu, sistema de reiniciar/voltar ao menu preservando
 rota+dificuldade. Loja (`ShopScene`) com moeda persistente (Dados Recuperados, ganha ao
-completar rotas) e o 4º módulo **Limitador** (aplica lentidão, primeiro item comprável — 150
-Dados Recuperados).
+completar rotas) e o Rastreador como item comprável (200 Dados Recuperados) — Limitador vem
+desbloqueado por padrão.
+
+**Responsivo** (`Phaser.Scale.FIT` em `main.ts`): a resolução de design (960x758) continua
+sendo o que todo o layout de cada cena usa — nada de posição/tamanho precisou mudar. O canvas
+escala pra caber em qualquer tela (celular, tablet, monitor grande), limitado a 2x a resolução
+nativa via `max-width/max-height` no `#app` (`style.css`) pra não borrar. O texto usa uma
+resolução interna mais alta por padrão (patch em `main.ts` na factory `GameObjectFactory.text`)
+pra ficar nítido mesmo escalado. Celular/tablet em retrato mostra um aviso pra girar o aparelho
+(`#rotate-overlay` no `index.html` + media query no `style.css`) — a grade 15x10 não cabe bem
+na vertical. Ver as duas armadilhas relacionadas a `Scale.FIT` acima antes de mexer nisso.
 
 ## Roadmap combinado (ainda não implementado)
 

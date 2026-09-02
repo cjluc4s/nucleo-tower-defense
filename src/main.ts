@@ -10,6 +10,25 @@ import DifficultyScene from './scenes/DifficultyScene';
 import GameScene from './scenes/GameScene';
 import UIScene from './scenes/UIScene';
 
+// Every scene's text is hand-tuned against the 960x758 design resolution, but Scale.FIT
+// (below) stretches that canvas to fill screens of any size. Phaser renders Text objects to
+// their own internal canvas at 1x resolution by default, which looks soft once stretched —
+// bumping the default resolution renders that internal canvas sharper up front, so text stays
+// crisp at any scale. This affects every `this.add.text(...)` call in the game without having
+// to touch each one individually; it only changes render sharpness, never layout (Text's
+// exposed .width/.height, used throughout for spacing, are computed before this multiplier).
+const TEXT_RESOLUTION = Math.min((window.devicePixelRatio || 1) * 1.5, 3);
+const originalTextFactory = Phaser.GameObjects.GameObjectFactory.prototype.text;
+Phaser.GameObjects.GameObjectFactory.prototype.text = function (
+  x: number,
+  y: number,
+  text: string | string[],
+  style?: Phaser.Types.GameObjects.Text.TextStyle,
+) {
+  const resolvedStyle: Phaser.Types.GameObjects.Text.TextStyle = { resolution: TEXT_RESOLUTION, ...style };
+  return originalTextFactory.call(this, x, y, text, resolvedStyle);
+};
+
 new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'app',
@@ -17,7 +36,13 @@ new Phaser.Game({
   height: GAME_HEIGHT,
   backgroundColor: '#0f1620',
   scale: {
-    mode: Phaser.Scale.NONE,
+    // FIT scales the whole 960x758 design canvas to fit whatever screen it's on (phone,
+    // tablet, ultrawide monitor...) while preserving its aspect ratio and letterboxing the
+    // rest — every scene's hand-tuned pixel layout keeps working unchanged at any size.
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    width: GAME_WIDTH,
+    height: GAME_HEIGHT,
   },
   scene: [MenuScene, AboutScene, ShopScene, MapSelectionScene, SectorMapScene, DifficultyScene, GameScene, UIScene],
 });

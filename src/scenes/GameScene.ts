@@ -5,6 +5,7 @@ import {
   GRID_ROWS,
   GRID_OFFSET_Y,
   GAME_WIDTH,
+  GAME_HEIGHT,
   TOWER_DEFS,
   DIFFICULTY_DEFS,
 } from '../game/constants';
@@ -85,7 +86,19 @@ export default class GameScene extends Phaser.Scene {
 
     this.input.mouse?.disableContextMenu();
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.handleHover(p));
-    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => this.handleClick(p));
+
+    // An interactive zone (not the generic scene-wide `this.input.on(...)`) so clicks/taps
+    // use the exact same hit-testing path as every button elsewhere in the game, rather than
+    // a raw scene-wide listener. Bound to 'pointerup', not 'pointerdown': when a click lands
+    // on a UIScene object (a different, higher scene) immediately followed by a click here,
+    // Phaser was found to reliably drop the 'pointerdown' for this lower scene but not the
+    // 'pointerup' for the same click — this sidesteps that entirely (see handleClick's
+    // right-click comment for the one knock-on effect).
+    this.add
+      .rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0)
+      .setOrigin(0, 0)
+      .setInteractive()
+      .on('pointerup', (p: Phaser.Input.Pointer) => this.handleClick(p));
 
     EventBus.on('select-tower', (key: string | null) => {
       this.selectedTowerKey = key;
@@ -265,7 +278,11 @@ export default class GameScene extends Phaser.Scene {
   }
 
   private handleClick(pointer: Phaser.Input.Pointer) {
-    if (pointer.rightButtonDown()) {
+    // This fires on 'pointerup', not 'pointerdown' — see the registration comment in
+    // create(). rightButtonDown() reads the *current* live button state, which is already
+    // false by the time the right button's up event fires; pointer.button is a snapshot of
+    // which button triggered this specific event, so it still reads 2 (right) here.
+    if (pointer.button === 2) {
       EventBus.emit('cancel-tower-selection');
       this.deselectTower();
       return;
@@ -273,7 +290,7 @@ export default class GameScene extends Phaser.Scene {
     if (this.gameEnded) return;
 
     // The sell button is a UIScene object at these same canvas coordinates. Its own
-    // pointerdown handler (in UIScene) runs before this raw scene-wide listener, so by
+    // pointer handler (in UIScene) runs before this raw scene-wide listener, so by
     // the time we get here the sale is already done and this.selectedTower is already
     // null — checking "did the click land on the panel" against *current* state doesn't
     // work. sellTower() sets this flag instead, so we can just swallow this click outright.
