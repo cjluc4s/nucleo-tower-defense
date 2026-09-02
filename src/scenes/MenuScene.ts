@@ -8,7 +8,10 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('bg-menu', '/bg-menu.png');
+    // BASE_URL, not a hardcoded '/' — Vite only rewrites absolute asset paths inside
+    // index.html for the configured `base`; a plain string here would 404 once the site is
+    // served from a subpath (GitHub Pages: /nucleo-tower-defense/).
+    this.load.image('bg-menu', `${import.meta.env.BASE_URL}bg-menu.png`);
   }
 
   create() {
