@@ -10,7 +10,14 @@ import {
   DIFFICULTY_DEFS,
 } from '../game/constants';
 import type { DifficultyKey, TargetPriority } from '../game/constants';
-import { computePathPoints, computeBlockedCells, cellKey, isInGrid, gridToPixel } from '../game/path';
+import {
+  computePathPoints,
+  computeBlockedCells,
+  computeCumulativeDistances,
+  cellKey,
+  isInGrid,
+  gridToPixel,
+} from '../game/path';
 import { MAP_DEFS, getTowerCost } from '../game/maps';
 import { isTowerUnlocked, recordMapCompletion } from '../game/progress';
 import type { MapCompletionResult } from '../game/progress';
@@ -58,6 +65,7 @@ export default class GameScene extends Phaser.Scene {
     const mapDef = MAP_DEFS[this.mapKey];
     this.pathPoints = computePathPoints(mapDef.pathGrid);
     this.blocked = computeBlockedCells(mapDef.pathGrid);
+    const cumulativeDistances = computeCumulativeDistances(this.pathPoints);
 
     this.gold = DIFFICULTY_DEFS[this.difficulty].startingGold + mapDef.goldBonus;
     this.lives = DIFFICULTY_DEFS[this.difficulty].startingLives;
@@ -82,7 +90,9 @@ export default class GameScene extends Phaser.Scene {
 
     this.hoverGraphics = this.add.graphics();
 
-    this.waveManager = new WaveManager(this, this.pathPoints, mapDef.waveCurve, (enemy) => this.enemies.push(enemy));
+    this.waveManager = new WaveManager(this, this.pathPoints, cumulativeDistances, mapDef.waveCurve, (enemy) =>
+      this.enemies.push(enemy),
+    );
 
     this.input.mouse?.disableContextMenu();
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.handleHover(p));

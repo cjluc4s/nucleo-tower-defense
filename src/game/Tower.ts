@@ -34,10 +34,13 @@ export default class Tower {
 
   findTarget(enemies: Enemy[]): Enemy | null {
     let best: Enemy | null = null;
-    // 'first' targets whoever is closest to the Núcleo (highest waypointIndex); 'last'
+    // 'first' targets whoever is closest to the Núcleo (highest path progress); 'last'
     // targets whoever just arrived (lowest); 'strongest' targets the toughest enemy type
     // in range (highest maxHp) — using maxHp instead of current hp keeps the tower locked
     // onto the same target type instead of hopping targets as hp drops mid-fight.
+    // Progress is measured in exact pixels travelled along the path (getProgress()), not
+    // waypointIndex — every enemy walking the same segment shares one waypointIndex, so that
+    // alone can't tell apart who's actually closer to the core within a shared segment.
     let bestScore = this.priority === 'last' ? Infinity : -1;
     for (const e of enemies) {
       if (!e.alive) continue;
@@ -45,8 +48,9 @@ export default class Tower {
       if (dist > this.def.range) continue;
 
       if (this.priority === 'last') {
-        if (e.waypointIndex < bestScore) {
-          bestScore = e.waypointIndex;
+        const progress = e.getProgress();
+        if (progress < bestScore) {
+          bestScore = progress;
           best = e;
         }
       } else if (this.priority === 'strongest') {
@@ -55,8 +59,9 @@ export default class Tower {
           best = e;
         }
       } else {
-        if (e.waypointIndex > bestScore) {
-          bestScore = e.waypointIndex;
+        const progress = e.getProgress();
+        if (progress > bestScore) {
+          bestScore = progress;
           best = e;
         }
       }

@@ -20,16 +20,19 @@ export default class WaveManager {
   private pending: PendingSpawn[] = [];
   private onSpawn: SpawnCallback;
   private readonly pathPoints: { x: number; y: number }[];
+  private readonly cumulativeDistances: number[];
   private readonly config: WaveCurveConfig;
 
   constructor(
     scene: Phaser.Scene,
     pathPoints: { x: number; y: number }[],
+    cumulativeDistances: number[],
     config: WaveCurveConfig,
     onSpawn: SpawnCallback,
   ) {
     this.scene = scene;
     this.pathPoints = pathPoints;
+    this.cumulativeDistances = cumulativeDistances;
     this.config = config;
     this.onSpawn = onSpawn;
   }
@@ -59,7 +62,7 @@ export default class WaveManager {
       p.timer -= dt;
       if (p.timer <= 0) {
         const def = ENEMY_DEFS[p.entry.type];
-        const enemy = new Enemy(this.scene, def, this.pathPoints);
+        const enemy = new Enemy(this.scene, def, this.pathPoints, this.cumulativeDistances);
         this.onSpawn(enemy);
         p.spawned++;
         p.timer = p.entry.interval;

@@ -13,6 +13,20 @@ export function computePathPoints(pathGrid: GridPoint[]): { x: number; y: number
   return pathGrid.map((p) => gridToPixel(p.col, p.row));
 }
 
+// Cumulative pixel distance from the start of the path to each waypoint — computed once per
+// map. This is what lets tower targeting rank enemies by exact progress along the path instead
+// of by waypointIndex alone, which is too coarse: every enemy walking the same segment shares
+// the same index, so 'first'/'last' targeting couldn't tell them apart within a segment.
+export function computeCumulativeDistances(pathPoints: { x: number; y: number }[]): number[] {
+  const distances: number[] = [0];
+  for (let i = 1; i < pathPoints.length; i++) {
+    const prev = pathPoints[i - 1];
+    const curr = pathPoints[i];
+    distances.push(distances[i - 1] + Math.hypot(curr.x - prev.x, curr.y - prev.y));
+  }
+  return distances;
+}
+
 export function cellKey(col: number, row: number): string {
   return `${col},${row}`;
 }

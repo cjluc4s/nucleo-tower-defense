@@ -13,15 +13,22 @@ export default class Enemy {
   leaked = false;
   container: Phaser.GameObjects.Container;
   private readonly pathPoints: { x: number; y: number }[];
+  private readonly cumulativeDistances: number[];
   private hpBarFill: Phaser.GameObjects.Rectangle;
   private slowRing: Phaser.GameObjects.Arc;
   private slowMultiplier = 1;
   private slowRemaining = 0;
 
-  constructor(scene: Phaser.Scene, def: EnemyDef, pathPoints: { x: number; y: number }[]) {
+  constructor(
+    scene: Phaser.Scene,
+    def: EnemyDef,
+    pathPoints: { x: number; y: number }[],
+    cumulativeDistances: number[],
+  ) {
     this.scene = scene;
     this.def = def;
     this.pathPoints = pathPoints;
+    this.cumulativeDistances = cumulativeDistances;
     this.hp = def.hp;
     this.maxHp = def.hp;
     const start = pathPoints[0];
@@ -70,6 +77,14 @@ export default class Enemy {
       this.y += (dy / dist) * step;
     }
     this.container.setPosition(this.x, this.y);
+  }
+
+  // Exact distance travelled along the path so far, in pixels — used for 'first'/'last'
+  // tower-focus targeting instead of waypointIndex, which can't distinguish two enemies
+  // walking the same segment.
+  getProgress(): number {
+    const prev = this.pathPoints[this.waypointIndex - 1];
+    return this.cumulativeDistances[this.waypointIndex - 1] + Math.hypot(this.x - prev.x, this.y - prev.y);
   }
 
   applySlow(percent: number, durationMs: number) {
