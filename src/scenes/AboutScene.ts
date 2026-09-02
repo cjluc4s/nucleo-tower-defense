@@ -88,7 +88,9 @@ export default class AboutScene extends Phaser.Scene {
     }
 
     let rightY = sectionHeaderY + 22;
-    for (const key of Object.keys(TOWER_DEFS)) {
+    // Cheapest-to-priciest by base cost — same ordering rule as the build bar and the shop.
+    const towerKeysByCost = Object.keys(TOWER_DEFS).sort((a, b) => TOWER_DEFS[a].cost - TOWER_DEFS[b].cost);
+    for (const key of towerKeysByCost) {
       const def = TOWER_DEFS[key];
       rightY = this.addEntryRow(RIGHT_COLUMN_X, rightY, {
         markerColor: def.color,

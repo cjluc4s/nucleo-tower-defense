@@ -67,6 +67,12 @@ Depois de qualquer mudança visual/gameplay, teste no navegador antes de conside
   loja. **Nunca** ler/escrever `localStorage` direto fora desse módulo. Módulos com
   `unlockedByDefault: false` em `TOWER_DEFS` só aparecem na barra de construção do `GameScene`
   se `isTowerUnlocked()`/`getAvailableTowerKeys()` disser que sim.
+- **Módulos de defesa sempre aparecem em ordem crescente de custo** — barra de construção
+  (`UIScene`, por custo no setor atual via `getTowerCost`), Loja (`ShopScene`) e tela Sobre
+  (`AboutScene`), todos ordenando por custo em vez de seguir a ordem de inserção em
+  `TOWER_DEFS`. Padrão combinado com o usuário: ao adicionar um módulo novo, não precisa
+  (e não deve) inserir manualmente na posição "certa" em `TOWER_DEFS` — a ordenação por
+  custo em cada tela já resolve isso sozinha.
 
 ## Armadilhas conhecidas (já mordemos essas)
 

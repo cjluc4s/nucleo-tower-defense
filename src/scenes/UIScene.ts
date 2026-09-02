@@ -134,8 +134,14 @@ export default class UIScene extends Phaser.Scene {
 
     this.add.rectangle(0, GAME_HEIGHT - BOTTOM_BAR_HEIGHT, GAME_WIDTH, BOTTOM_BAR_HEIGHT, 0x0b1119, 0.9).setOrigin(0, 0);
 
+    // Always laid out cheapest-to-priciest for the current sector, so any future module
+    // slots into the right spot automatically instead of following TOWER_DEFS insertion order.
+    const sortedKeys = getAvailableTowerKeys().sort(
+      (a, b) => getTowerCost(a, mapDef.tier) - getTowerCost(b, mapDef.tier),
+    );
+
     let bx = 16;
-    for (const key of getAvailableTowerKeys()) {
+    for (const key of sortedKeys) {
       const def = TOWER_DEFS[key];
       const rect = this.add
         .rectangle(bx, GAME_HEIGHT - BOTTOM_BAR_HEIGHT + 12, 150, 50, def.color, 0.85)

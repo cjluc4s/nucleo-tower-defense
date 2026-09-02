@@ -33,7 +33,11 @@ export default class ShopScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    const shopKeys = Object.keys(TOWER_DEFS).filter((key) => !TOWER_DEFS[key].unlockedByDefault);
+    // Cheapest-to-priciest by base cost, so a future shop module lands in the right spot
+    // automatically instead of following TOWER_DEFS insertion order.
+    const shopKeys = Object.keys(TOWER_DEFS)
+      .filter((key) => !TOWER_DEFS[key].unlockedByDefault)
+      .sort((a, b) => TOWER_DEFS[a].cost - TOWER_DEFS[b].cost);
 
     let y = 150;
     for (const key of shopKeys) {
