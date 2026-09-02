@@ -116,7 +116,9 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
     fireRate: 1300,
     projectileSpeed: 800,
     color: 0x9b59b6,
-    unlockedByDefault: true,
+    unlockedByDefault: false,
+    unlockCost: 200,
+    description: 'Alcance longo, mira precisa, dano concentrado.',
   },
   splash: {
     key: 'splash',
@@ -141,9 +143,7 @@ export const TOWER_DEFS: Record<string, TowerDef> = {
     color: 0x1abc9c,
     slowPercent: 0.4,
     slowDuration: 2000,
-    unlockedByDefault: false,
-    unlockCost: 150,
-    description: 'Reduz a velocidade dos vetores atingidos, prendendo-os no alcance dos outros módulos.',
+    unlockedByDefault: true,
   },
 };
 
