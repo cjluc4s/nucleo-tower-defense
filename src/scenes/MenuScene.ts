@@ -20,22 +20,40 @@ export default class MenuScene extends Phaser.Scene {
     const centerX = GAME_WIDTH / 2;
     const center = GAME_HEIGHT / 2;
 
-    this.add
+    const title = this.add
       .text(centerX, center - 120, 'NÚCLEO', {
         fontFamily: 'Arial',
-        fontSize: '52px',
-        color: '#ffffff',
-        fontStyle: 'bold',
+        fontSize: '56px',
+        color: '#eafcff',
+        fontStyle: '900',
+        letterSpacing: 4,
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setShadow(0, 0, '#2de1fc', 18, false, true)
+      .setStroke('#04141a', 6);
 
-    this.add
-      .text(centerX, center - 70, 'A rede está infectada.', {
+    const subtitle = this.add
+      .text(centerX, center - 68, 'A REDE ESTÁ INFECTADA', {
         fontFamily: 'Arial',
-        fontSize: '16px',
-        color: '#9fb3c8',
+        fontSize: '15px',
+        color: '#8fd8e8',
+        fontStyle: '600',
+        letterSpacing: 3,
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setShadow(0, 2, '#000000', 4, true, true);
+
+    // Both fonts are loaded from Google Fonts (index.html) — swap them in once ready instead
+    // of naming them up front, so the canvas doesn't render one frame with a system-font
+    // fallback still holding stale (smaller) metrics baked into the text's cached size.
+    if ('fonts' in document) {
+      Promise.all([document.fonts.load('900 56px Orbitron'), document.fonts.load('600 15px Rajdhani')])
+        .then(() => {
+          title.setFontFamily('Orbitron, Arial, sans-serif').updateText();
+          subtitle.setFontFamily('Rajdhani, Arial, sans-serif').updateText();
+        })
+        .catch(() => {});
+    }
 
     this.createButton(centerX, center, 220, 56, 0x3498db, 0x2980b9, 'JOGAR', '#ffffff', '22px', () =>
       this.scene.start('MapSelectionScene'),

@@ -17,7 +17,9 @@ import UIScene from './scenes/UIScene';
 // crisp at any scale. This affects every `this.add.text(...)` call in the game without having
 // to touch each one individually; it only changes render sharpness, never layout (Text's
 // exposed .width/.height, used throughout for spacing, are computed before this multiplier).
-const TEXT_RESOLUTION = Math.min((window.devicePixelRatio || 1) * 1.5, 3);
+// Matches (with headroom) the 2x max CSS scale cap in style.css, so text is never sampled
+// at a lower resolution than it can end up displayed at.
+const TEXT_RESOLUTION = Math.min((window.devicePixelRatio || 1) * 2, 4);
 const originalTextFactory = Phaser.GameObjects.GameObjectFactory.prototype.text;
 Phaser.GameObjects.GameObjectFactory.prototype.text = function (
   x: number,
