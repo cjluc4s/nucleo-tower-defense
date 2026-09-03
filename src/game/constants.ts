@@ -18,6 +18,14 @@ export const GAME_HEIGHT = TOP_BAR_HEIGHT + GRID_ROWS * GRID_SIZE + BOTTOM_BAR_H
 // UIScene shifts its build-bar content by the same offset so it stays aligned under the grid.
 export const GAME_WIDTH = 1350;
 export const GRID_OFFSET_X = Math.round((GAME_WIDTH - GRID_WIDTH) / 2);
+// How many grid-cell-widths of margin sit to the left of the grid, rounded up (+1 cell of
+// slack for the path's own stroke width). maps.ts uses `-OFFSCREEN_SPAWN_COL` as each route's
+// first waypoint — a deliberately off-grid point so enemies appear to walk in from outside the
+// screen instead of popping in at the grid's edge. With GRID_OFFSET_X > 0, a fixed `col: -1`
+// (which used to sit just past the old edge-to-edge canvas) now lands inside the margin —
+// visible, sitting outside the grid's own drawn boundary. This keeps that spawn point reliably
+// off the *whole* canvas regardless of how wide the margin ends up being.
+export const OFFSCREEN_SPAWN_COL = -(Math.ceil(GRID_OFFSET_X / GRID_SIZE) + 1);
 
 // Shared by GameScene (to ignore clicks that land on the panel, so they don't also
 // re-trigger tower selection underneath) and UIScene (to actually draw the panel).

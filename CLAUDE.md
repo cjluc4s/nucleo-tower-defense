@@ -144,6 +144,17 @@ duas armadilhas relacionadas a `Scale.FIT` acima antes de mexer nisso.
   `GAME_WIDTH` normalmente — a maioria das cenas fora do `GameScene`/`UIScene` já centraliza
   tudo via `GAME_WIDTH / 2`, então herdou o canvas mais largo automaticamente, sem precisar de
   nenhum ajuste manual.
+  - **Consequência que já mordeu uma vez:** todo mapa em `maps.ts` começa o `pathGrid` num
+    ponto fora da grade (`OFFSCREEN_SPAWN_COL`, `constants.ts` — um número de colunas negativo,
+    calculado a partir de `GRID_OFFSET_X`) pra dar a impressão de que o vetor entra vindo de
+    fora da tela. Como o canvas agora é mais largo que a grade, o segmento reto desenhado desse
+    ponto até o primeiro waypoint on-grid cruza a margem do canvas — visível, fora do
+    retângulo da grade, ainda que dentro do canvas. Fix: `GameScene.createGridMask()` cria uma
+    `Phaser.Display.Masks.GeometryMask` do retângulo exato da grade, aplicada tanto no
+    `Graphics` do `drawPath()` quanto no `container` de cada `Enemy` (no callback de spawn do
+    `WaveManager`, em `create()`). Qualquer objeto novo que possa ficar posicionado fora da
+    grade (hoje só o caminho e os vetores; torres/projéteis não saem da grade) precisa do mesmo
+    `.setMask(this.gridMask)`.
 - **Mobile: altura de viewport instável.** `main.ts` espelha `window.innerHeight` numa CSS var
   (`--app-height`, usada em `#app` no `style.css` como override de `100dvh`) e força
   `game.scale.refresh()` em `resize`/`orientationchange` (com um retry atrasado de 300ms) —

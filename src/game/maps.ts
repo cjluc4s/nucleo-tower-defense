@@ -1,4 +1,4 @@
-import { GRID_COLS, TOWER_DEFS } from './constants';
+import { GRID_COLS, OFFSCREEN_SPAWN_COL, TOWER_DEFS } from './constants';
 import type { WaveCurveConfig } from './constants';
 import type { GridPoint } from './path';
 
@@ -66,7 +66,7 @@ export const MAP_DEFS: Record<string, MapDef> = {
     tier: 'iniciante',
     description: 'Caminho longo e direto, muito espaço livre para posicionar módulos.',
     pathGrid: [
-      { col: -1, row: 4 },
+      { col: OFFSCREEN_SPAWN_COL, row: 4 },
       { col: 8, row: 4 },
       { col: 8, row: 7 },
       { col: EDGE, row: 7 },
@@ -83,7 +83,7 @@ export const MAP_DEFS: Record<string, MapDef> = {
     tier: 'iniciante',
     description: 'Entra mais abaixo e sobe perto do núcleo. Ainda bastante espaço livre.',
     pathGrid: [
-      { col: -1, row: 7 },
+      { col: OFFSCREEN_SPAWN_COL, row: 7 },
       { col: 11, row: 7 },
       { col: 11, row: 2 },
       { col: EDGE, row: 2 },
@@ -100,7 +100,7 @@ export const MAP_DEFS: Record<string, MapDef> = {
     tier: 'intermediario',
     description: 'Caminho serpenteado que sobe e desce em ziguezague, espaço moderado.',
     pathGrid: [
-      { col: -1, row: 4 },
+      { col: OFFSCREEN_SPAWN_COL, row: 4 },
       { col: 3, row: 4 },
       { col: 3, row: 8 },
       { col: 7, row: 8 },
@@ -121,7 +121,7 @@ export const MAP_DEFS: Record<string, MapDef> = {
     tier: 'intermediario',
     description: 'Outro padrão de curvas, com viradas mais cedo. Espaço moderado.',
     pathGrid: [
-      { col: -1, row: 2 },
+      { col: OFFSCREEN_SPAWN_COL, row: 2 },
       { col: 2, row: 2 },
       { col: 2, row: 8 },
       { col: 6, row: 8 },
@@ -142,7 +142,7 @@ export const MAP_DEFS: Record<string, MapDef> = {
     tier: 'avancado',
     description: 'Faixas horizontais apertadas cobrindo quase toda a largura. Denso e hostil.',
     pathGrid: [
-      { col: -1, row: 1 },
+      { col: OFFSCREEN_SPAWN_COL, row: 1 },
       { col: 13, row: 1 },
       { col: 13, row: 3 },
       { col: 1, row: 3 },
@@ -165,7 +165,7 @@ export const MAP_DEFS: Record<string, MapDef> = {
     tier: 'avancado',
     description: 'Ziguezague vertical apertado, mesma densidade em outro ângulo.',
     pathGrid: [
-      { col: -1, row: 1 },
+      { col: OFFSCREEN_SPAWN_COL, row: 1 },
       { col: 2, row: 1 },
       { col: 2, row: 8 },
       { col: 5, row: 8 },

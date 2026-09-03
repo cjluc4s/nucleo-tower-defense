@@ -52,6 +52,7 @@ export default class GameScene extends Phaser.Scene {
   private gameSpeed = 1;
   private selectedTower: Tower | null = null;
   private suppressNextClick = false;
+  private gridMask!: Phaser.Display.Masks.GeometryMask;
 
   constructor() {
     super('GameScene');
@@ -85,15 +86,23 @@ export default class GameScene extends Phaser.Scene {
     this.suppressNextClick = false;
 
     this.cameras.main.setBackgroundColor('#16212c');
+    this.gridMask = this.createGridMask();
     this.drawGrid();
     this.drawPath();
     this.createNucleo();
 
     this.hoverGraphics = this.add.graphics();
 
-    this.waveManager = new WaveManager(this, this.pathPoints, cumulativeDistances, mapDef.waveCurve, (enemy) =>
-      this.enemies.push(enemy),
-    );
+    this.waveManager = new WaveManager(this, this.pathPoints, cumulativeDistances, mapDef.waveCurve, (enemy) => {
+      // Every map's path starts one waypoint before the grid (see OFFSCREEN_SPAWN_COL in
+      // constants.ts) so enemies read as walking in from outside the map instead of popping
+      // into existence at its edge. But the canvas is wider than the grid (GRID_OFFSET_X —
+      // see CLAUDE.md), so without this mask that pre-grid stretch of travel would render in
+      // the canvas margin, plainly outside the grid's own drawn boundary — the same bug this
+      // mask fixes for the static path line below.
+      enemy.container.setMask(this.gridMask);
+      this.enemies.push(enemy);
+    });
 
     this.input.mouse?.disableContextMenu();
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => this.handleHover(p));
@@ -208,6 +217,16 @@ export default class GameScene extends Phaser.Scene {
     this.emitState();
   }
 
+  // The grid's own visible rectangle, as a geometry mask — applied to anything that shouldn't
+  // render past the grid's edges even though it's technically still within the (wider) canvas.
+  // See the comment where this is applied to enemies, and drawPath() below.
+  private createGridMask(): Phaser.Display.Masks.GeometryMask {
+    const shape = this.make.graphics({}, false);
+    shape.fillStyle(0xffffff);
+    shape.fillRect(GRID_OFFSET_X, GRID_OFFSET_Y, GRID_COLS * GRID_SIZE, GRID_ROWS * GRID_SIZE);
+    return shape.createGeometryMask();
+  }
+
   private drawGrid() {
     const gridBottom = GRID_OFFSET_Y + GRID_ROWS * GRID_SIZE;
     const gridRight = GRID_OFFSET_X + GRID_COLS * GRID_SIZE;
@@ -230,6 +249,10 @@ export default class GameScene extends Phaser.Scene {
       g.lineTo(this.pathPoints[i].x, this.pathPoints[i].y);
     }
     g.strokePath();
+    // The path's first waypoint sits off-grid on purpose (OFFSCREEN_SPAWN_COL, constants.ts),
+    // so the straight segment drawn to it would otherwise cross the canvas margin outside the
+    // grid's own edge — masked to the grid rect so nothing renders past that boundary.
+    g.setMask(this.gridMask);
   }
 
   private createNucleo() {
