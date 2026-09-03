@@ -31,16 +31,44 @@ Phaser.GameObjects.GameObjectFactory.prototype.text = function (
   return originalTextFactory.call(this, x, y, text, resolvedStyle);
 };
 
-new Phaser.Game({
+// Mobile browsers (iOS Safari in particular) resize their address/toolbar chrome after the
+// page has already laid out, and `100dvh` (the CSS fallback in style.css) doesn't always
+// settle immediately after rotating the device — leaving #app briefly sized against a stale
+// viewport, which throws off Phaser's FIT scaling until something else triggers a resize.
+// Mirroring `window.innerHeight` into a CSS var on load/resize/orientationchange (the
+// pre-`dvh` mobile-viewport trick) keeps #app's real size correct, and explicitly refreshing
+// the scale manager afterwards forces Phaser to recompute immediately against it rather than
+// waiting on its own listener.
+function syncAppHeight() {
+  document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+}
+syncAppHeight();
+window.addEventListener('resize', () => {
+  syncAppHeight();
+  game.scale.refresh();
+});
+window.addEventListener('orientationchange', () => {
+  syncAppHeight();
+  game.scale.refresh();
+  // The viewport/toolbar can keep settling for a bit after the event fires.
+  setTimeout(() => {
+    syncAppHeight();
+    game.scale.refresh();
+  }, 300);
+});
+
+const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'app',
   width: GAME_WIDTH,
   height: GAME_HEIGHT,
   backgroundColor: '#0f1620',
   scale: {
-    // FIT scales the whole 960x758 design canvas to fit whatever screen it's on (phone,
-    // tablet, ultrawide monitor...) while preserving its aspect ratio and letterboxing the
-    // rest — every scene's hand-tuned pixel layout keeps working unchanged at any size.
+    // FIT scales the whole design canvas to fit whatever screen it's on (phone, tablet,
+    // ultrawide monitor...) while preserving its aspect ratio and letterboxing the rest —
+    // every scene's hand-tuned pixel layout keeps working unchanged at any size. The canvas
+    // itself is wider than the actual 15x10 play grid on purpose, precisely to minimize that
+    // letterboxing on phones — see constants.ts (GRID_OFFSET_X) for why.
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     width: GAME_WIDTH,

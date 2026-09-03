@@ -32,6 +32,7 @@ Sem anúncios, sem compras dentro do jogo, sem conexão com servidor nenhum — 
 - 🧬 **3 tipos de vetores** (inimigos) e **3 módulos de defesa** (torres), cada um com um papel tático diferente
 - 💥 Dano em área, efeitos visuais de impacto e um Núcleo que reage visivelmente a cada vazamento
 - ✨ Animações discretas (surgimento, disparo, destruição) dando mais vida a vetores e módulos, sem exagero
+- 📱 Jogável no celular — layout responsivo otimizado pra tela cheia na horizontal
 - 🎨 Interface 100% desenhada por código — sem dependência de spritesheets ou assets externos (exceto o plano de fundo do menu)
 
 ## Capturas de tela

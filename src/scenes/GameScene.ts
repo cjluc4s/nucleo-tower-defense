@@ -3,6 +3,7 @@ import {
   GRID_SIZE,
   GRID_COLS,
   GRID_ROWS,
+  GRID_OFFSET_X,
   GRID_OFFSET_Y,
   GAME_WIDTH,
   GAME_HEIGHT,
@@ -209,13 +210,14 @@ export default class GameScene extends Phaser.Scene {
 
   private drawGrid() {
     const gridBottom = GRID_OFFSET_Y + GRID_ROWS * GRID_SIZE;
+    const gridRight = GRID_OFFSET_X + GRID_COLS * GRID_SIZE;
     const g = this.add.graphics();
     g.lineStyle(1, 0x24333f, 1);
     for (let c = 0; c <= GRID_COLS; c++) {
-      g.lineBetween(c * GRID_SIZE, GRID_OFFSET_Y, c * GRID_SIZE, gridBottom);
+      g.lineBetween(c * GRID_SIZE + GRID_OFFSET_X, GRID_OFFSET_Y, c * GRID_SIZE + GRID_OFFSET_X, gridBottom);
     }
     for (let r = 0; r <= GRID_ROWS; r++) {
-      g.lineBetween(0, r * GRID_SIZE + GRID_OFFSET_Y, GAME_WIDTH, r * GRID_SIZE + GRID_OFFSET_Y);
+      g.lineBetween(GRID_OFFSET_X, r * GRID_SIZE + GRID_OFFSET_Y, gridRight, r * GRID_SIZE + GRID_OFFSET_Y);
     }
   }
 
@@ -282,7 +284,12 @@ export default class GameScene extends Phaser.Scene {
     const center = gridToPixel(col, row);
 
     this.hoverGraphics.fillStyle(valid ? 0x2ecc71 : 0xe74c3c, 0.25);
-    this.hoverGraphics.fillRect(col * GRID_SIZE, row * GRID_SIZE + GRID_OFFSET_Y, GRID_SIZE, GRID_SIZE);
+    this.hoverGraphics.fillRect(
+      col * GRID_SIZE + GRID_OFFSET_X,
+      row * GRID_SIZE + GRID_OFFSET_Y,
+      GRID_SIZE,
+      GRID_SIZE,
+    );
     this.hoverGraphics.lineStyle(1, 0xffffff, 0.4);
     this.hoverGraphics.strokeCircle(center.x, center.y, def.range);
   }
@@ -350,7 +357,10 @@ export default class GameScene extends Phaser.Scene {
   }
 
   private pixelToCell(x: number, y: number) {
-    return { col: Math.floor(x / GRID_SIZE), row: Math.floor((y - GRID_OFFSET_Y) / GRID_SIZE) };
+    return {
+      col: Math.floor((x - GRID_OFFSET_X) / GRID_SIZE),
+      row: Math.floor((y - GRID_OFFSET_Y) / GRID_SIZE),
+    };
   }
 
   private startNextWave() {

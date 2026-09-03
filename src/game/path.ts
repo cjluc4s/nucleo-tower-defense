@@ -1,4 +1,4 @@
-import { GRID_SIZE, GRID_COLS, GRID_ROWS, GRID_OFFSET_Y } from './constants';
+import { GRID_SIZE, GRID_COLS, GRID_ROWS, GRID_OFFSET_X, GRID_OFFSET_Y } from './constants';
 
 export interface GridPoint {
   col: number;
@@ -6,7 +6,10 @@ export interface GridPoint {
 }
 
 export function gridToPixel(col: number, row: number): { x: number; y: number } {
-  return { x: col * GRID_SIZE + GRID_SIZE / 2, y: row * GRID_SIZE + GRID_SIZE / 2 + GRID_OFFSET_Y };
+  return {
+    x: col * GRID_SIZE + GRID_SIZE / 2 + GRID_OFFSET_X,
+    y: row * GRID_SIZE + GRID_SIZE / 2 + GRID_OFFSET_Y,
+  };
 }
 
 export function computePathPoints(pathGrid: GridPoint[]): { x: number; y: number }[] {

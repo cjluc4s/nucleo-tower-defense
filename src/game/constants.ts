@@ -4,8 +4,20 @@ export const GRID_ROWS = 10;
 export const TOP_BAR_HEIGHT = 44;
 export const BOTTOM_BAR_HEIGHT = 74;
 export const GRID_OFFSET_Y = TOP_BAR_HEIGHT;
-export const GAME_WIDTH = GRID_COLS * GRID_SIZE;
+// The actual playable grid, in pixels — independent of the canvas width below. Every
+// hand-authored map path (maps.ts) is defined in col/row units against this, so it must never
+// change just to fit a screen.
+export const GRID_WIDTH = GRID_COLS * GRID_SIZE;
 export const GAME_HEIGHT = TOP_BAR_HEIGHT + GRID_ROWS * GRID_SIZE + BOTTOM_BAR_HEIGHT;
+// The canvas is deliberately wider than the grid (~16:9, matching both common desktop monitors
+// and modern phone landscape aspect ratios much more closely than the grid's own 960:640 shape)
+// so Phaser.Scale.FIT doesn't have to letterbox nearly as hard on phones — see CLAUDE.md
+// ("Responsivo") for the full reasoning and the mobile complaint that motivated this. The grid
+// keeps its original pixel size and is centered horizontally within the wider canvas via
+// GRID_OFFSET_X; GameScene/path.ts apply that offset when drawing/hit-testing the grid, and
+// UIScene shifts its build-bar content by the same offset so it stays aligned under the grid.
+export const GAME_WIDTH = 1350;
+export const GRID_OFFSET_X = Math.round((GAME_WIDTH - GRID_WIDTH) / 2);
 
 // Shared by GameScene (to ignore clicks that land on the panel, so they don't also
 // re-trigger tower selection underneath) and UIScene (to actually draw the panel).
@@ -21,8 +33,8 @@ export function computeSellPanelBounds(
   const centerY =
     aboveY - SELL_PANEL_HEIGHT / 2 < TOP_BAR_HEIGHT + 6 ? towerY + SELL_PANEL_OFFSET_Y : aboveY;
   const centerX = Math.min(
-    Math.max(towerX, SELL_PANEL_WIDTH / 2 + 8),
-    GAME_WIDTH - SELL_PANEL_WIDTH / 2 - 8,
+    Math.max(towerX, GRID_OFFSET_X + SELL_PANEL_WIDTH / 2 + 8),
+    GRID_OFFSET_X + GRID_WIDTH - SELL_PANEL_WIDTH / 2 - 8,
   );
   return {
     x: centerX - SELL_PANEL_WIDTH / 2,

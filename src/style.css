@@ -23,10 +23,14 @@ body {
   width: 100vw;
   height: 100vh;
   height: 100dvh;
-  /* Phaser.Scale.FIT scales the 960x758 canvas to fill this box. Capped at 2x native
+  /* --app-height (set from window.innerHeight in main.ts) overrides both of the above once JS
+     runs — more reliable than dvh on mobile browsers whose toolbar chrome resizes after the
+     page has already laid out, especially right after an orientation change. */
+  height: var(--app-height, 100dvh);
+  /* Phaser.Scale.FIT scales the 1350x758 canvas to fill this box. Capped at 2x native
      resolution — past that, even the boosted text resolution (see main.ts) and the menu
      background image start looking soft, so we stop scaling instead of going blurry. */
-  max-width: 1920px;
+  max-width: 2700px;
   max-height: 1516px;
   /* No flex-centering here: Phaser's autoCenter (CENTER_BOTH) already centers the canvas
      inside this box via its own margin — adding flex centering on top double-offsets it. */

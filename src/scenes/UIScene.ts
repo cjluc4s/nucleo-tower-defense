@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import {
   GAME_WIDTH,
   GAME_HEIGHT,
+  GRID_OFFSET_X,
+  GRID_WIDTH,
   TOP_BAR_HEIGHT,
   BOTTOM_BAR_HEIGHT,
   TOWER_DEFS,
@@ -140,7 +142,9 @@ export default class UIScene extends Phaser.Scene {
       (a, b) => getTowerCost(a, mapDef.tier) - getTowerCost(b, mapDef.tier),
     );
 
-    let bx = 16;
+    // Shifted by GRID_OFFSET_X (not flush against x=0) so the build bar stays visually
+    // docked under the grid instead of drifting to the far edge of the now-wider canvas.
+    let bx = GRID_OFFSET_X + 16;
     for (const key of sortedKeys) {
       const def = TOWER_DEFS[key];
       const rect = this.add
@@ -162,12 +166,15 @@ export default class UIScene extends Phaser.Scene {
       bx += 166;
     }
 
+    // Anchored to the grid's own right edge (GRID_OFFSET_X + GRID_WIDTH), not the wider
+    // canvas's — otherwise it'd drift far from the build bar above, opening a dead gap.
+    const startWaveX = GRID_OFFSET_X + GRID_WIDTH - 190;
     this.startWaveBtn = this.add
-      .rectangle(GAME_WIDTH - 190, GAME_HEIGHT - BOTTOM_BAR_HEIGHT + 12, 174, 50, 0x27ae60)
+      .rectangle(startWaveX, GAME_HEIGHT - BOTTOM_BAR_HEIGHT + 12, 174, 50, 0x27ae60)
       .setOrigin(0, 0)
       .setInteractive({ useHandCursor: true });
     this.startWaveLabel = this.add
-      .text(GAME_WIDTH - 190 + 87, GAME_HEIGHT - BOTTOM_BAR_HEIGHT + 37, 'Iniciar Onda', {
+      .text(startWaveX + 87, GAME_HEIGHT - BOTTOM_BAR_HEIGHT + 37, 'Iniciar Onda', {
         fontFamily: 'Arial',
         fontSize: '15px',
         color: '#ffffff',

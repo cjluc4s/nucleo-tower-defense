@@ -115,14 +115,41 @@ rota+dificuldade. Loja (`ShopScene`) com moeda persistente (Dados Recuperados, g
 completar rotas) e o Rastreador como item comprável (200 Dados Recuperados) — Limitador vem
 desbloqueado por padrão.
 
-**Responsivo** (`Phaser.Scale.FIT` em `main.ts`): a resolução de design (960x758) continua
-sendo o que todo o layout de cada cena usa — nada de posição/tamanho precisou mudar. O canvas
-escala pra caber em qualquer tela (celular, tablet, monitor grande), limitado a 2x a resolução
-nativa via `max-width/max-height` no `#app` (`style.css`) pra não borrar. O texto usa uma
-resolução interna mais alta por padrão (patch em `main.ts` na factory `GameObjectFactory.text`)
-pra ficar nítido mesmo escalado. Celular/tablet em retrato mostra um aviso pra girar o aparelho
-(`#rotate-overlay` no `index.html` + media query no `style.css`) — a grade 15x10 não cabe bem
-na vertical. Ver as duas armadilhas relacionadas a `Scale.FIT` acima antes de mexer nisso.
+**Responsivo** (`Phaser.Scale.FIT` em `main.ts`): o canvas escala pra caber em qualquer tela
+(celular, tablet, monitor grande), limitado a 2x a resolução nativa via `max-width/max-height`
+no `#app` (`style.css`) pra não borrar. O texto usa uma resolução interna mais alta por padrão
+(patch em `main.ts` na factory `GameObjectFactory.text`) pra ficar nítido mesmo escalado.
+Celular/tablet em retrato mostra um aviso pra girar o aparelho (`#rotate-overlay` no
+`index.html` + media query no `style.css`) — a grade 15x10 não cabe bem na vertical. Ver as
+duas armadilhas relacionadas a `Scale.FIT` acima antes de mexer nisso.
+
+- **Canvas (`GAME_WIDTH`) é mais largo que a grade jogável (`GRID_WIDTH`), de propósito.** A
+  grade continua com seu tamanho original em pixels (15×10 células de 64px = 960×640) — todo
+  mapa em `maps.ts` é definido em unidades de coluna/linha contra isso, então isso nunca pode
+  mudar só pra caber numa tela. O canvas em si (`GAME_WIDTH` em `constants.ts`) é ~16:9
+  (1350×758), porque essa proporção fica muito mais perto tanto de monitor widescreen comum
+  quanto de celular na horizontal (~2:1) do que a proporção da própria grade (960:640 ≈ 1.5:1)
+  — com a grade sozinha como canvas, `Scale.FIT` sobrava boa parte da largura em preto puro em
+  celular (bug relatado pelo usuário: "muito longe", grade telinha no meio de uma tela preta).
+  A grade fica centralizada horizontalmente dentro do canvas mais largo via `GRID_OFFSET_X`
+  (`constants.ts`) — `path.ts` (`gridToPixel`) e `GameScene.ts` (desenho da grade, hover,
+  `pixelToCell`) aplicam esse offset. As barras de HUD em `UIScene.ts` continuam ocupando o
+  canvas inteiro (fundo escuro edge-to-edge, sem voltar a parecer "vazio"), mas o conteúdo da
+  barra inferior (botões de módulo + Iniciar Onda) é deslocado por `GRID_OFFSET_X` pra ficar
+  visualmente alinhado embaixo da grade em vez de grudado na borda esquerda do canvas.
+  `computeSellPanelBounds` também usa `GRID_OFFSET_X`/`GRID_WIDTH` (não `GAME_WIDTH`) pra
+  travar o painel de venda dentro da área da grade. Ao adicionar posições novas em qualquer
+  cena: conteúdo que deve ficar "preso à grade" usa `GRID_OFFSET_X`; conteúdo que é só HUD
+  solto (textos/botões no topo, telas de menu/loja/sobre centralizadas) pode continuar usando
+  `GAME_WIDTH` normalmente — a maioria das cenas fora do `GameScene`/`UIScene` já centraliza
+  tudo via `GAME_WIDTH / 2`, então herdou o canvas mais largo automaticamente, sem precisar de
+  nenhum ajuste manual.
+- **Mobile: altura de viewport instável.** `main.ts` espelha `window.innerHeight` numa CSS var
+  (`--app-height`, usada em `#app` no `style.css` como override de `100dvh`) e força
+  `game.scale.refresh()` em `resize`/`orientationchange` (com um retry atrasado de 300ms) —
+  navegadores mobile (Safari em especial) redimensionam a barra de endereço depois da página já
+  ter feito layout, e `dvh` sozinho nem sempre acompanha isso a tempo, especialmente logo após
+  girar o aparelho.
 
 ## Roadmap combinado (ainda não implementado)
 
