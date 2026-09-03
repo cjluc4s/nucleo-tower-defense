@@ -149,3 +149,8 @@ dentro da história do Núcleo** — nada de mecânica emprestada de outro jogo 
   balanceamento (nomes, valores de economia, mecânicas novas) — mas para bugs e ajustes já
   combinados, pode implementar direto e mostrar o resultado testado.
 - Sempre verificar mudanças rodando o jogo de verdade (navegador), não só `tsc`.
+- **Manter o `README.md` sempre atualizado.** Ao concluir qualquer feature/mudança visível
+  (novo recurso, setor, módulo, mecânica, mudança na tela inicial, deploy, etc.), atualizar as
+  seções relevantes do README (Recursos, Roadmap, Estrutura do projeto, etc.) como parte da
+  própria mudança — não esperar o usuário pedir. Roadmap: mover item de pendente pra concluído
+  (ou remover, se virou recurso listado em "Recursos") assim que for implementado.

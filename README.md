@@ -8,6 +8,9 @@
 ![Phaser](https://img.shields.io/badge/Phaser-3.90-8B5CF6)
 ![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?logo=vite&logoColor=white)
 ![Status](https://img.shields.io/badge/status-em%20desenvolvimento-2ecc71)
+![Deploy](https://github.com/cjluc4s/nucleo-tower-defense/actions/workflows/deploy.yml/badge.svg)
+
+### 🎮 [Jogar agora](https://cjluc4s.github.io/nucleo-tower-defense/)
 
 </div>
 
@@ -28,6 +31,7 @@ Sem anúncios, sem compras dentro do jogo, sem conexão com servidor nenhum — 
 - ♾️ **Modo infinito** — depois de vencer um setor, continue defendendo o Núcleo indefinidamente e veja até onde consegue chegar
 - 🧬 **3 tipos de vetores** (inimigos) e **3 módulos de defesa** (torres), cada um com um papel tático diferente
 - 💥 Dano em área, efeitos visuais de impacto e um Núcleo que reage visivelmente a cada vazamento
+- ✨ Animações discretas (surgimento, disparo, destruição) dando mais vida a vetores e módulos, sem exagero
 - 🎨 Interface 100% desenhada por código — sem dependência de spritesheets ou assets externos (exceto o plano de fundo do menu)
 
 ## Capturas de tela
